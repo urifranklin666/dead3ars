@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # node:sqlite (DatabaseSync) needs a recent Node; 24 is the current LTS.
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # A malformed module only fails at request time otherwise, so this is the
+      # gate that keeps content authoring honest.
+      - name: Validate curriculum content
+        run: npm run check:curriculum
+
+      - name: Build
+        run: npm run build
+
+      # Boot the production server against a seeded database and exercise the real
+      # HTTP surface: auth, server-side grading, the answer-key leak check, and the
+      # teacher/student authorization boundary.
+      - name: End-to-end smoke test
+        run: |
+          npm run seed
+          npm run start &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000 >/dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:smoke

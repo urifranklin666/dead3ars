@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+/* dead3ars reads as an operator console: dark, quiet, high-contrast where it
+   counts. Tiers and severity are the only things allowed to shout. */
+
+@theme inline {
+  --color-bg: #0a0e14;
+  --color-panel: #111823;
+  --color-panel-2: #161f2c;
+  --color-line: #223044;
+  --color-ink: #dbe6f2;
+  --color-muted: #8ea3ba;
+  --color-accent: #35d0e8;
+  --color-accent-2: #4ade80;
+  --color-warn: #fbbf24;
+  --color-danger: #fb7185;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---------- small primitives reused across pages ---------- */
+
+.dz-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.dz-card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 0.625rem;
+}
+
+.dz-input {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  color: var(--color-ink);
+  font-size: 0.9375rem;
+}
+.dz-input:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.dz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: 1px solid var(--color-line);
+  background: var(--color-panel-2);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.dz-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+.dz-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dz-btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #04161b;
+}
+.dz-btn-primary:hover:not(:disabled) {
+  background: #5fdcef;
+}
+
+/* ---------- tier + tier-like badges ---------- */
+
+.dz-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.dz-badge-foundation { color: var(--color-accent-2); }
+.dz-badge-core { color: var(--color-accent); }
+.dz-badge-advanced { color: var(--color-warn); }
+.dz-badge-neutral { color: var(--color-muted); }
+
+/* ---------- rendered module markdown ---------- */
+
+.prose-dz {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--color-ink);
+}
+.prose-dz > * + * {
+  margin-top: 1rem;
+}
+.prose-dz h3,
+.prose-dz h4 {
+  font-family: var(--font-mono);
+  font-size: 1.0625rem;
+  margin-top: 1.75rem;
+  color: #fff;
+}
+.prose-dz ul,
+.prose-dz ol {
+  padding-left: 1.35rem;
+}
+.prose-dz ul { list-style: disc; }
+.prose-dz ol { list-style: decimal; }
+.prose-dz li + li { margin-top: 0.35rem; }
+.prose-dz a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-dz strong { color: #fff; }
+.prose-dz code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: #0d131c;
+  border: 1px solid var(--color-line);
+  border-radius: 0.25rem;
+  padding: 0.05rem 0.3rem;
+}
+.prose-dz pre {
+  background: #0d131c;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+}
+.prose-dz pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.prose-dz blockquote {
+  border-left: 3px solid var(--color-line);
+  padding-left: 0.9rem;
+  color: var(--color-muted);
+}
+.prose-dz table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.prose-dz th,
+.prose-dz td {
+  border: 1px solid var(--color-line);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
