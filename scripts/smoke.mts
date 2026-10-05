@@ -59,6 +59,9 @@ async function call(
 
 const modules = loadModules();
 const target = modules[0];
+/* The smoke student passes `target` partway through; classroom checks assign a
+ * different module so "not yet passed" is true for them. */
+const assignedModule = modules[1] ?? modules[0];
 
 console.log(`\ndead3ars smoke test against ${BASE}\n`);
 console.log(`  (using module ${target.id}, ${target.assessment.length} questions)\n`);
@@ -271,6 +274,93 @@ check(
   (cohortData.cohort.find((r) => r.email === newEmail)?.assessments_passed ?? 0) >= 1,
 );
 check('curriculum stats match the content on disk', cohortData.stats.modules === modules.length);
+
+/* ---------- classroom tools: classes, assignments, gradebook ---------- */
+
+const studentMakesClass = await call('/api/classes', {
+  method: 'POST',
+  cookie: studentCookie ?? undefined,
+  body: { name: 'A class a student should not be able to make' },
+});
+check('a student cannot create a class', studentMakesClass.status === 403, `status ${studentMakesClass.status}`);
+
+const klass = await call('/api/classes', {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { name: `Smoke Class ${stamp}` },
+});
+const klassId = klass.json<{ klass: { id: number; join_code: string } }>().klass.id;
+const joinCode = klass.json<{ klass: { id: number; join_code: string } }>().klass.join_code;
+check('a teacher can create a class', klass.status === 201, `status ${klass.status}`);
+check('the class has a join code', typeof joinCode === 'string' && joinCode.startsWith('DZ-'));
+
+const badJoin = await call('/api/classes/join', {
+  method: 'POST',
+  cookie: studentCookie ?? undefined,
+  body: { code: 'DZ-NOPE99' },
+});
+check('an unknown join code is rejected', badJoin.status === 404, `status ${badJoin.status}`);
+
+const join = await call('/api/classes/join', {
+  method: 'POST',
+  cookie: studentCookie ?? undefined,
+  body: { code: joinCode },
+});
+check('a student with the code can join the class', join.status === 200, `status ${join.status}`);
+
+const assign = await call(`/api/classes/${klassId}/assignments`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  /* Deliberately a module this student has NOT passed: overdue only flags
+   * assigned work that is past due and still unpassed. */
+  body: { moduleId: assignedModule.id, dueAt: '2000-01-01' },
+});
+check('a teacher can assign a module', assign.status === 201, `status ${assign.status}`);
+
+const detail = await call(`/api/classes/${klassId}`, { cookie: teacher.cookie ?? undefined });
+const detailData = detail.json<{
+  roster: { email: string }[];
+  gradebook: { modules: string[]; rows: { student: { email: string }; overdue: string[] }[] };
+}>();
+check('the gradebook names the assigned module', detailData.gradebook.modules.includes(assignedModule.id));
+check('the gradebook includes the enrolled student', detailData.gradebook.rows.some((r) => r.student.email === newEmail));
+check(
+  'a module past its due date is flagged overdue for a student who has not passed it',
+  (detailData.gradebook.rows.find((r) => r.student.email === newEmail)?.overdue ?? []).includes(assignedModule.id),
+);
+
+/* A second teacher must not be able to reach the first teacher's class. */
+const otherTeacher = await call('/api/auth/register', {
+  method: 'POST',
+  body: { email: `other-teacher-${stamp}@dead3ars.test`, name: 'Other Teacher', password: 'teacher-pass-2026', role: 'teacher' },
+});
+const intrusion = await call(`/api/classes/${klassId}`, { cookie: otherTeacher.cookie ?? undefined });
+check(
+  "another teacher cannot read a class they do not own",
+  intrusion.status === 404,
+  `status ${intrusion.status}`,
+);
+
+const exportRes = await call(`/api/classes/${klassId}/export`, { cookie: teacher.cookie ?? undefined });
+check('the CSV export is served', exportRes.status === 200, `status ${exportRes.status}`);
+check('the CSV export is text/csv', (exportRes.body.length > 0 && exportRes.status === 200));
+check('the CSV export names the enrolled student', exportRes.body.includes(newEmail));
+check(
+  'a student cannot export the class list',
+  (await call(`/api/classes/${klassId}/export`, { cookie: studentCookie ?? undefined })).status === 403,
+);
+
+const assignedOnDashboard = await call('/dashboard', { cookie: studentCookie ?? undefined });
+check(
+  'assigned work appears on the student dashboard',
+  assignedOnDashboard.status === 200 && assignedOnDashboard.body.includes('Assigned to you'),
+);
+
+const unassign = await call(`/api/classes/${klassId}/assignments?moduleId=${assignedModule.id}`, {
+  method: 'DELETE',
+  cookie: teacher.cookie ?? undefined,
+});
+check('a teacher can remove an assignment', unassign.status === 200, `status ${unassign.status}`);
 
 /* ---------- sign out ---------- */
 

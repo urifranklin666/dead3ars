@@ -22,6 +22,9 @@ The name is a joke at the reader's expense. The content is not.
   release of explanations, happen on the server only.
 - **Student and teacher dashboards.** Students track per-module progress and keep private
   notes; teachers see the cohort's completion and where it stalls.
+- **Classes and assignments.** A teacher creates a class, hands out its join code, and
+  assigns modules with optional due dates. Each class has a gradebook and a CSV export;
+  assigned work appears on the student's dashboard, with overdue work flagged.
 
 ## Stack
 

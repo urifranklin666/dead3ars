@@ -26,9 +26,14 @@ export function Nav({ user }: { user: SessionUser | null }) {
             </Link>
           )}
           {isStaff(user) && (
-            <Link href="/teacher" className="hover:text-ink">
-              Cohort
-            </Link>
+            <>
+              <Link href="/teacher" className="hover:text-ink">
+                Cohort
+              </Link>
+              <Link href="/teacher/classes" className="hover:text-ink">
+                Classes
+              </Link>
+            </>
           )}
         </nav>
 

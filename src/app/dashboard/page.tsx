@@ -2,8 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { ModuleList } from '@/components/ModuleList';
+import { JoinClassForm } from '@/components/JoinClassForm';
 import { loadModules } from '@/lib/curriculum';
 import { attemptsFor, bestAttempt, progressMap, type Status } from '@/lib/progress';
+import { assignmentsForStudent, classesForStudent } from '@/lib/classroom';
 import { moduleHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
@@ -38,6 +40,12 @@ export default async function DashboardPage() {
   const nextUp = modules.find((m) => progress[m.id] !== 'assessment-passed');
 
   const notes = modules.filter((m) => progress[m.id] || attempts.some((a) => a.module_id === m.id));
+
+  /* Work a teacher set, and the classes this student belongs to. */
+  const assigned = assignmentsForStudent(user.id);
+  const titles = new Map(modules.map((m) => [m.id, m]));
+  const myClasses = classesForStudent(user.id);
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
   return (
     <div className="space-y-10">
@@ -76,6 +84,76 @@ export default async function DashboardPage() {
           </Link>
         </section>
       )}
+
+      {assigned.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xl font-semibold">Assigned to you</h2>
+            <span className="dz-label">{assigned.length} from your classes</span>
+          </div>
+          <div className="space-y-2">
+            {assigned.map((a) => {
+              const mod = titles.get(a.module_id);
+              const overdue = a.due_at !== null && a.due_at < now && a.status !== 'assessment-passed';
+              return (
+                <Link
+                  key={`${a.class_id}:${a.module_id}`}
+                  href={moduleHref(a.module_id)}
+                  className="dz-card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-accent"
+                >
+                  <div>
+                    <span className="font-medium">
+                      {mod ? `${String(mod.order).padStart(2, '0')} · ${mod.title}` : a.module_id}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted">
+                      {a.class_name} ·{' '}
+                      {a.due_at ? (
+                        <span className={overdue ? 'text-warn' : ''}>
+                          due {a.due_at.slice(0, 10)}
+                          {overdue ? ' · overdue' : ''}
+                        </span>
+                      ) : (
+                        'no due date'
+                      )}
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs">
+                    {a.status === 'assessment-passed' ? (
+                      <span className="text-accent-2">✓ passed</span>
+                    ) : a.best_score !== null && a.best_total !== null ? (
+                      <span className="text-warn">{a.best_score}/{a.best_total} — keep going</span>
+                    ) : (
+                      <span className="text-muted">not started</span>
+                    )}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <section className="dz-card space-y-3 p-5">
+        {myClasses.length > 0 ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="dz-label">Your classes</span>
+              {myClasses.map((c) => (
+                <span key={c.id} className="dz-badge dz-badge-neutral">
+                  {c.name}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-muted">
+              Enrolled with {myClasses.map((c) => c.teacher_name).join(', ')}. Ask your teacher for a
+              new join code to add another class.
+            </p>
+          </>
+        ) : (
+          <p className="dz-label">Your classes</p>
+        )}
+        <JoinClassForm />
+      </section>
 
       <section className="space-y-4">
         <div className="flex items-baseline justify-between">

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { curriculumStats, loadModules } from '@/lib/curriculum';
 import { cohort, type CohortRow } from '@/lib/progress';
-import { moduleHref } from '@/lib/routes';
+import { moduleHref, studentHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
 
@@ -37,13 +37,18 @@ export default async function TeacherPage() {
 
   return (
     <div className="space-y-10">
-      <header className="space-y-2">
-        <p className="dz-label">Teacher · {user.name}</p>
-        <h1 className="text-3xl font-bold tracking-tight">Cohort</h1>
-        <p className="text-sm text-muted">
-          {stats.modules} modules · {stats.questions} assessment questions ·{' '}
-          {stats.techniques} ATT&amp;CK techniques in the curriculum.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <p className="dz-label">Teacher · {user.name}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Cohort</h1>
+          <p className="text-sm text-muted">
+            {stats.modules} modules · {stats.questions} assessment questions ·{' '}
+            {stats.techniques} ATT&amp;CK techniques in the curriculum.
+          </p>
+        </div>
+        <Link href="/teacher/classes" className="dz-btn dz-btn-primary">
+          Classes &amp; assignments
+        </Link>
       </header>
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -123,7 +128,9 @@ function CohortTr({ row, total }: { row: CohortRow; total: number }) {
   return (
     <tr className="border-b border-line/60 last:border-0">
       <td className="px-4 py-3">
-        <span className="block font-medium">{row.name}</span>
+        <Link href={studentHref(row.id)} className="block font-medium hover:text-accent">
+          {row.name}
+        </Link>
         <span className="block text-xs text-muted">{row.email}</span>
       </td>
       <td className="px-4 py-3 font-mono">{row.modules_started}</td>

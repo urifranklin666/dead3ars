@@ -6,6 +6,7 @@ import { db } from '../src/lib/db';
 import { createUser } from '../src/lib/auth';
 import { loadModules } from '../src/lib/curriculum';
 import { recordAttempt, recordProgress } from '../src/lib/progress';
+import { assignModule, classesForTeacher, createClass, enrollByCode } from '../src/lib/classroom';
 
 const PEOPLE = [
   { email: 'teacher@dead3ars.test', name: 'Dr. A. Teacher', password: 'teacher-pass-2026', role: 'teacher' as const },
@@ -53,6 +54,32 @@ if (mods.length) {
   seedProgress('ada@dead3ars.test', mods.length, 2); // furthest along
   seedProgress('grace@dead3ars.test', Math.ceil(mods.length / 2), 3);
   seedProgress('linus@dead3ars.test', 1, 9);
+}
+
+/*
+ * A demo class so the roster, gradebook, and assignment views have something
+ * real to show. Modules 1–4 are assigned with staggered due dates: some past
+ * (so a student can show up at-risk) and some ahead.
+ */
+const teacherId = users['teacher@dead3ars.test'];
+if (teacherId && mods.length) {
+  let klass: { id: number; name: string; join_code: string } | undefined = classesForTeacher(teacherId)[0];
+  if (!klass) {
+    klass = createClass(teacherId, 'CS 4700 — Offensive Security');
+    console.log(`created class "${klass.name}"  (join code: ${klass.join_code})`);
+  } else {
+    console.log(`exists  class "${klass.name}"  (join code: ${klass.join_code})`);
+  }
+
+  for (const email of ['ada@dead3ars.test', 'grace@dead3ars.test', 'linus@dead3ars.test']) {
+    enrollByCode(users[email], klass.join_code);
+  }
+
+  const day = 24 * 60 * 60 * 1000;
+  const iso = (offsetDays: number) => new Date(Date.now() + offsetDays * day).toISOString().slice(0, 10);
+  const dueDates = [iso(-21), iso(-10), iso(4), iso(11)];
+  mods.slice(0, dueDates.length).forEach((m, i) => assignModule(teacherId, klass!.id, m.id, dueDates[i]));
+  console.log(`assigned ${Math.min(dueDates.length, mods.length)} module(s) to "${klass.name}"`);
 }
 
 console.log('\ndone.');

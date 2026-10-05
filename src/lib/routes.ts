@@ -5,3 +5,5 @@ import type { Route } from 'next';
 export const moduleHref = (id: string): Route => `/modules/${id}` as Route;
 export const lessonHref = (id: string, hash?: string): Route =>
   (hash ? `/modules/${id}#${hash}` : `/modules/${id}`) as Route;
+export const classHref = (id: number): Route => `/teacher/classes/${id}` as Route;
+export const studentHref = (id: number): Route => `/teacher/students/${id}` as Route;

@@ -52,8 +52,39 @@ CREATE TABLE IF NOT EXISTS notes (
   PRIMARY KEY (user_id, module_id)
 );
 
+/* A class is a teacher's roster: a named group of students with a join code.
+ * Assignments hang off a class and name a module and an optional due date. The
+ * schema is additive (CREATE TABLE IF NOT EXISTS), so an older database picks
+ * these up on next open without a migration step. */
+CREATE TABLE IF NOT EXISTS classes (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  name       TEXT NOT NULL,
+  teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  join_code  TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS enrollments (
+  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (class_id, student_id)
+);
+
+CREATE TABLE IF NOT EXISTS assignments (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  module_id  TEXT NOT NULL,
+  due_at     TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (class_id, module_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON quiz_attempts(user_id, module_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id);
+CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_class ON assignments(class_id);
 `;
 
 const g = globalThis as unknown as { __dzDb?: DatabaseSync };
