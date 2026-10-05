@@ -146,6 +146,17 @@ CREATE TABLE IF NOT EXISTS audit_log (
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+/* One row per failed sign-in, in two dimensions: kind='account' keyed on the
+ * attempted email (whether or not it exists), kind='ip' keyed on the client
+ * address. Consulted before the password is verified, and pruned as it is
+ * written. See src/lib/ratelimit.ts. */
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind       TEXT NOT NULL CHECK (kind IN ('account','ip')),
+  key        TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON quiz_attempts(user_id, module_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id);
@@ -158,6 +169,7 @@ CREATE INDEX IF NOT EXISTS idx_announcements_class ON announcements(class_id, cr
 CREATE INDEX IF NOT EXISTS idx_discussions_class ON discussions(class_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
+CREATE INDEX IF NOT EXISTS idx_login_attempts ON login_attempts(kind, key, created_at);
 `;
 
 const g = globalThis as unknown as { __dzDb?: DatabaseSync };

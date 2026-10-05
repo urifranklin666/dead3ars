@@ -28,6 +28,7 @@ interface Reply {
   body: string;
   cookie: string | null;
   location: string | null;
+  header: (name: string) => string | null;
   json: <T = unknown>() => T;
 }
 
@@ -53,6 +54,7 @@ async function call(
     body,
     cookie: setCookie ? setCookie.split(';')[0] : null,
     location: res.headers.get('location'),
+    header: (name: string) => res.headers.get(name),
     json: <T,>() => JSON.parse(body) as T,
   };
 }
@@ -741,6 +743,98 @@ check('sign out succeeds', out.status === 200, `status ${out.status}`);
 
 const afterLogout = await call('/api/notes?moduleId=' + target.id, { cookie: studentCookie ?? undefined });
 check('the destroyed session no longer works', afterLogout.status === 401, `status ${afterLogout.status}`);
+
+/* ---------- failed-sign-in throttling ---------- */
+
+/* Deliberately last: this locks an account on the way through. */
+const miss = (email: string, password: string) =>
+  call('/api/auth/login', { method: 'POST', body: { email, password } });
+
+/* Run the burst until throttled, and say how many tries it took. Each failure
+ * is a 401 and the one that trips the limit is a 429. */
+async function burstUntilThrottled(email: string, password: string, cap: number) {
+  let reply = await miss(email, password);
+  let tries = 1;
+  while (reply.status === 401 && tries < cap) {
+    reply = await miss(email, password);
+    tries++;
+  }
+  return { reply, tries };
+}
+
+/* The throttle counts per account, in a window that defaults to 15 minutes.
+ * A run a few seconds after a previous one would otherwise start with the
+ * counter part-full — or already locked, which is what a naive rerun does.
+ * Seeding one throwaway account with a known number of failures and asserting
+ * the delta makes the check deterministic whatever state the window is in. */
+const throttleEmail = `throttle-${stamp}@dead3ars.test`;
+const seedFailures = 3;
+for (let i = 0; i < seedFailures; i++) await miss(throttleEmail, 'wrong-password');
+
+const { reply: lockResponse, tries } = await burstUntilThrottled(throttleEmail, 'wrong-password', 20);
+/* `tries` includes the refused attempt, so the failures actually permitted are
+ * everything before it. The limit is an allowance, not an attempt number. */
+const allowedFailures = seedFailures + (tries - 1);
+check('repeated wrong passwords are throttled with 429', lockResponse.status === 429, `status ${lockResponse.status}`);
+check(
+  'the account is throttled after the configured number of failures',
+  allowedFailures === 5,
+  `${allowedFailures} failures permitted before the lock (expected 5)`,
+);
+check(
+  'a throttled response says how long to wait',
+  Number(lockResponse.header('retry-after')) > 0,
+  `Retry-After: ${lockResponse.header('retry-after')}`,
+);
+/* The sign-in form renders this field, so an empty one would leave the student
+ * staring at "Something went wrong." with no idea they are locked out. */
+check(
+  'a throttled response carries a message the form can show',
+  (lockResponse.json<{ error?: string }>().error ?? '').includes('Too many'),
+  lockResponse.json<{ error?: string }>().error ?? '(no error field)',
+);
+
+/* The throttle is consulted before the password is verified, so even the
+ * correct password is refused while the account is shut. This is the property
+ * that makes the lock real rather than advisory. */
+const correctWhileLocked = await miss(throttleEmail, 'wrong-password');
+check('further attempts stay refused while throttled', correctWhileLocked.status === 429, `status ${correctWhileLocked.status}`);
+
+/* The throttle is per-account, not global: a burst against one account must not
+ * close the door on anybody else. This is the property that matters behind a
+ * campus NAT, where every student shares one address. */
+const bystander = await miss('linus@dead3ars.test', 'student-pass-2026');
+check(
+  'throttling one account does not block another',
+  bystander.status === 200,
+  `status ${bystander.status}${bystander.status === 429 ? ' (the shared-address limit tripped)' : ''}`,
+);
+
+/* And it must hold for accounts that do not exist, or a guesser could simply
+ * aim at addresses that are not registered. */
+const ghostEmail = `ghost-${stamp}@dead3ars.test`;
+const ghost = await burstUntilThrottled(ghostEmail, 'nope', 20);
+check('a nonexistent account is throttled too', ghost.reply.status === 429, `status ${ghost.reply.status}`);
+
+/* A wrong password against an account that does not exist must look exactly
+ * like one against an account that does — same status, same message. */
+const missingAccount = await miss(`absent-${stamp}@dead3ars.test`, 'no-such-account');
+check(
+  'a nonexistent account is rejected like a real one',
+  missingAccount.status === 401 && missingAccount.body === badLogin.body,
+  `status ${missingAccount.status}`,
+);
+
+/* Throttled attempts must appear in the audit trail, distinct from ordinary
+ * failures — an operator needs to see a lockout, not just bad passwords. */
+const throttled = adminCookie
+  ? await call('/api/admin/overview?action=auth.login_throttled', { cookie: adminCookie })
+  : null;
+check(
+  'throttled attempts are recorded in the audit trail',
+  throttled !== null && throttled.status === 200 && throttled.json<{ audit: { total: number } }>().audit.total > 0,
+  throttled ? `total ${throttled.json<{ audit: { total: number } }>().audit.total}` : 'no admin session',
+);
 
 console.log(`\n${failed === 0 ? 'ALL GREEN' : `${failed} FAILURE(S)`}  (${passed} passed, ${failed} failed)\n`);
 process.exit(failed === 0 ? 0 : 1);

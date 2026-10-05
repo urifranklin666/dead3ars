@@ -89,7 +89,8 @@ npm run test:visual       # computed-style check (needs Chrome; see below)
 security-relevant behaviour, not just the happy path: that the answer explanations are absent
 from the rendered HTML, that grading is server-side, that a client cannot self-report a passed
 assessment, that a student is refused the teacher and admin APIs, that grading, roster import,
-and role changes are audited, and that progress, notes, and sessions behave. 111 checks.
+and role changes are audited, that failed sign-ins are throttled, and that progress, notes,
+and sessions behave. 120 checks.
 
 `npm run test:visual` launches headless Chrome and reads **computed** styles over the
 DevTools Protocol. A screenshot cannot be asserted and a stylesheet existing proves nothing,
@@ -136,6 +137,9 @@ docker run -d --name dead3ars -p 3000:3000 \
 | `DZ_ADMIN_PASSWORD` | its password; if unset a random one is generated and logged once      |
 | `DZ_INIT_ADMIN=0`   | skip admin creation entirely                                            |
 | `DZ_DEMO=1`         | show the demo credentials on the sign-in page (never in production)    |
+| `DZ_LOGIN_ACCOUNT_LIMIT` | failed sign-ins allowed per account per window (default 5)        |
+| `DZ_LOGIN_IP_LIMIT` | failed sign-ins allowed per address per window (default 50; `0` disables) |
+| `DZ_LOGIN_WINDOW_MINUTES` | throttle window length (default 15)                              |
 
 First boot is self-initialising. `src/instrumentation.ts` opens the database (which applies
 the schema) and ensures an admin account exists before the server serves, so a container
@@ -155,6 +159,26 @@ Two things are worth knowing when operating this:
 - **`/api/health` answers 200 only when the content directory and the database are both
   reachable**, and reports the module count, so a mis-traced image is visible from the probe
   rather than at the first module request. The Dockerfile wires it to `HEALTHCHECK`.
+
+### Failed sign-ins
+
+Sign-in attempts are throttled in two dimensions, counted in the database so every worker and
+every restart sees the same state.
+
+- **Per account** — five failures in fifteen minutes, keyed on the submitted address whether
+  or not an account exists, so the response is identical for both and guessing cannot tell
+  them apart. This is the load-bearing control: it cannot be escaped by changing source
+  address. A correct password clears that account's counter.
+- **Per address** — fifty, so one host spraying many accounts is slowed. Deliberately loose,
+  because the classroom case is a whole lab behind one NAT address: this is a runaway guard
+  against automation, not a per-student limit. Set `DZ_LOGIN_IP_LIMIT=0` to disable it on a
+  deployment behind a large shared address.
+
+The check runs before the password is verified, so a throttled attempt costs no `scrypt` work
+and a correct password is refused while an account is shut. Refusals are 429 with a
+`Retry-After` header and a message the sign-in form renders, and are recorded in the audit
+trail as `auth.login_throttled` — an operator watching for lockouts should not have to infer
+them from a run of ordinary failures.
 
 ## Scope and safety
 

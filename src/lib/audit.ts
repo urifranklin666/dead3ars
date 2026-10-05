@@ -11,6 +11,7 @@ export type AuditAction =
   | 'auth.register'
   | 'auth.login'
   | 'auth.login_failed'
+  | 'auth.login_throttled'
   | 'auth.logout'
   | 'class.create'
   | 'class.rename'
