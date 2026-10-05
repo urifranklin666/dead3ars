@@ -9,6 +9,7 @@ import { TierBadge } from '@/components/TierBadge';
 import { FREE_MODULE_LIMIT, getModule, loadModules } from '@/lib/curriculum';
 import { publicModule } from '@/lib/api';
 import { getNote, progressMap } from '@/lib/progress';
+import { workForStudent } from '@/lib/classroom';
 import { moduleHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 
@@ -39,6 +40,8 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
 
   const progress = user ? progressMap(user.id) : {};
   const note = user ? getNote(user.id, mod.id) : '';
+  /* Any class assignment that names this module, for the signed-in student. */
+  const myWork = user ? workForStudent(user.id, mod.id) : [];
 
   /* The answer key is stripped server-side, so it is never in the HTML or the
    * client bundle. Signed-in students still only get the questions. */
@@ -225,6 +228,43 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
               ))}
             </ul>
           </Section>
+
+          {myWork.length > 0 && (
+            <Section id="classwork" title="Assigned work" tone="accent">
+              <p className="mb-3 text-sm text-muted">
+                A teacher set this module for your class. Submit your write-up on the
+                assignment page; the module reading and assessment stay here.
+              </p>
+              <ul className="space-y-2">
+                {myWork.map((w) => (
+                  <li key={w.assignment_id}>
+                    <Link
+                      href={`/assignments/${w.assignment_id}` as never}
+                      className="dz-card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-accent"
+                    >
+                      <span>
+                        <span className="block font-medium">{w.class_name}</span>
+                        <span className="block text-xs text-muted">
+                          {w.due_at ? `due ${w.due_at.slice(0, 10)}` : 'no due date'}
+                        </span>
+                      </span>
+                      <span className="font-mono text-xs">
+                        {w.graded_at !== null ? (
+                          <span className="text-accent-2">
+                            marked {w.score}/{w.max}
+                          </span>
+                        ) : w.submitted_at !== null ? (
+                          <span className="text-accent">submitted</span>
+                        ) : (
+                          <span className="text-muted">not submitted</span>
+                        )}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
 
           {user && (
             <Section id="notes" title="Your notes">

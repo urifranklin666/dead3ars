@@ -65,6 +65,9 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          <Link href={`/teacher/classes/${classId}/analytics` as never} className="dz-btn">
+            Analytics
+          </Link>
           <a href={`/api/classes/${classId}/export`} className="dz-btn">
             Export CSV
           </a>
@@ -106,7 +109,15 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
                       )}
                     </p>
                   </div>
-                  <RemoveAssignmentButton classId={classId} moduleId={a.module_id} />
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/teacher/assignments/${a.id}` as never}
+                      className="dz-btn text-xs"
+                    >
+                      Grade work
+                    </Link>
+                    <RemoveAssignmentButton classId={classId} moduleId={a.module_id} />
+                  </div>
                 </div>
               );
             })}

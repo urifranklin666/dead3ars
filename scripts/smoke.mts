@@ -362,6 +362,143 @@ const unassign = await call(`/api/classes/${klassId}/assignments?moduleId=${assi
 });
 check('a teacher can remove an assignment', unassign.status === 200, `status ${unassign.status}`);
 
+/* ---------- classwork: rubric, submission, grading ---------- */
+
+const workAssign = await call(`/api/classes/${klassId}/assignments`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { moduleId: assignedModule.id, dueAt: null },
+});
+const assignmentId = workAssign.json<{ assignment: { id: number } }>().assignment.id;
+check('an assignment can be re-added for the classwork checks', workAssign.status === 201, `status ${workAssign.status}`);
+
+const setRubric = await call(`/api/assignments/${assignmentId}`, {
+  method: 'PATCH',
+  cookie: teacher.cookie ?? undefined,
+  body: {
+    rubric: [
+      { name: 'Findings', description: 'Correct and reproducible', points: 60 },
+      { name: 'Defence', description: 'Names the control', points: 40 },
+    ],
+  },
+});
+const rubricOut = setRubric.json<{ rubric: { name: string; points: number }[] }>().rubric;
+check('a teacher can set a rubric', setRubric.status === 200 && rubricOut.length === 2, `len ${rubricOut.length}`);
+
+const studentRubric = await call(`/api/assignments/${assignmentId}/submission`, { cookie: studentCookie ?? undefined });
+check(
+  'the student sees the rubric',
+  studentRubric.status === 200 && studentRubric.json<{ rubric: unknown[] }>().rubric.length === 2,
+);
+
+const submit = await call(`/api/assignments/${assignmentId}/submission`, {
+  method: 'PUT',
+  cookie: studentCookie ?? undefined,
+  body: { body: 'Here is my write-up of the lab.', link: 'https://example.test/evidence' },
+});
+check('a student can submit work', submit.status === 200, `status ${submit.status}`);
+
+const emptySubmit = await call(`/api/assignments/${assignmentId}/submission`, {
+  method: 'PUT',
+  cookie: studentCookie ?? undefined,
+  body: { body: '   ', link: '' },
+});
+check('an empty submission is rejected', emptySubmit.status === 400, `status ${emptySubmit.status}`);
+
+/* The teacher's grading view must show the submission; the student cannot read it. */
+const gradesGet = await call(`/api/assignments/${assignmentId}/grades`, { cookie: teacher.cookie ?? undefined });
+const workRows = gradesGet.json<{ work: { student: { email: string }; submission: unknown; grade: unknown }[] }>().work;
+check(
+  "the teacher's grading view shows the student's submission",
+  workRows.some((w) => w.student.email === newEmail && w.submission !== null),
+);
+check(
+  'a student cannot open the grading view',
+  (await call(`/api/assignments/${assignmentId}/grades`, { cookie: studentCookie ?? undefined })).status === 403,
+);
+
+/* A teacher grading a student who is not in the class is refused. `ada` is a
+ * real student, but not a member of this newly-created smoke class. */
+const strangerId = ada.json<{ user: { id: number } }>().user.id;
+const gradeStranger = await call(`/api/assignments/${assignmentId}/grades`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { studentId: strangerId, score: 50, max: 100, feedback: 'should not land' },
+});
+check(
+  'a teacher cannot grade a student who is not enrolled',
+  gradeStranger.status === 400,
+  `status ${gradeStranger.status}`,
+);
+
+const newStudentId = login.json<{ user: { id: number } }>().user.id;
+const grade = await call(`/api/assignments/${assignmentId}/grades`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { studentId: newStudentId, score: 85, max: 100, feedback: 'Good work — tighten the intro.' },
+});
+check('a teacher can grade submitted work', grade.status === 201, `status ${grade.status}`);
+
+const overMax = await call(`/api/assignments/${assignmentId}/grades`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { studentId: newStudentId, score: 120, max: 100, feedback: 'nope' },
+});
+check('a score above the maximum is rejected', overMax.status === 400, `status ${overMax.status}`);
+
+const studentSeesGrade = await call(`/api/assignments/${assignmentId}/submission`, { cookie: studentCookie ?? undefined });
+const gradeSeen = studentSeesGrade.json<{ grade: { score: number; max: number; feedback: string } | null }>().grade;
+check(
+  'the student sees their own mark and feedback',
+  gradeSeen?.score === 85 && gradeSeen?.feedback.includes('tighten the intro'),
+  `score ${gradeSeen?.score}`,
+);
+
+/* Another teacher must not be able to grade into this class's assignment. */
+check(
+  "another teacher cannot grade another teacher's assignment",
+  (
+    await call(`/api/assignments/${assignmentId}/grades`, {
+      method: 'POST',
+      cookie: otherTeacher.cookie ?? undefined,
+      body: { studentId: newStudentId, score: 100, max: 100, feedback: 'intruder' },
+    })
+  ).status === 404,
+);
+
+const myWork = await call('/api/my/work', { cookie: studentCookie ?? undefined });
+check(
+  "the student's own work API includes the graded assignment",
+  myWork.status === 200 && myWork.json<{ work: { assignment_id: number }[] }>().work.some((w) => w.assignment_id === assignmentId),
+);
+
+const analytics = await call(`/teacher/classes/${klassId}/analytics`, { cookie: teacher.cookie ?? undefined });
+check(
+  'the analytics page renders for the owning teacher',
+  analytics.status === 200 && analytics.body.includes('Where the class is stuck'),
+);
+
+/* Page renders, not just APIs: the grading page passes a row object across the
+ * server/client boundary, which is where null-prototype rows have bitten. */
+const grading = await call(`/teacher/assignments/${assignmentId}`, { cookie: teacher.cookie ?? undefined });
+check(
+  'the grading page renders with a submission and a grade present',
+  grading.status === 200 && grading.body.includes('Submissions') && grading.body.includes('write-up'),
+  `status ${grading.status}`,
+);
+
+const studentAssignmentPage = await call(`/assignments/${assignmentId}`, { cookie: studentCookie ?? undefined });
+check(
+  'the student assignment page renders the mark and feedback',
+  studentAssignmentPage.status === 200 && studentAssignmentPage.body.includes('tighten the intro'),
+  `status ${studentAssignmentPage.status}`,
+);
+
+check(
+  'a student is redirected away from the teacher grading page',
+  (await call(`/teacher/assignments/${assignmentId}`, { cookie: studentCookie ?? undefined })).status === 307,
+);
+
 /* ---------- sign out ---------- */
 
 const out = await call('/api/auth/logout', { method: 'POST', cookie: studentCookie ?? undefined });

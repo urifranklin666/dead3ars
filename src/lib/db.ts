@@ -80,11 +80,45 @@ CREATE TABLE IF NOT EXISTS assignments (
   UNIQUE (class_id, module_id)
 );
 
+/* Classwork: a submission is a student's written answer plus an optional link
+ * (a repo, a screenshot host, a writeup). A grade is the teacher's score and
+ * feedback on that submission. A rubric is the assignment's criteria list,
+ * stored as JSON. One row per student per assignment, replaced on resubmit. */
+CREATE TABLE IF NOT EXISTS submissions (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  assignment_id INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  student_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body          TEXT NOT NULL DEFAULT '',
+  link          TEXT NOT NULL DEFAULT '',
+  submitted_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (assignment_id, student_id)
+);
+
+CREATE TABLE IF NOT EXISTS grades (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  assignment_id INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  student_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  score         INTEGER NOT NULL,
+  max           INTEGER NOT NULL,
+  feedback      TEXT NOT NULL DEFAULT '',
+  graded_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (assignment_id, student_id)
+);
+
+CREATE TABLE IF NOT EXISTS rubrics (
+  assignment_id INTEGER PRIMARY KEY REFERENCES assignments(id) ON DELETE CASCADE,
+  criteria      TEXT NOT NULL DEFAULT '[]'
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON quiz_attempts(user_id, module_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id);
 CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_assignments_class ON assignments(class_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
+CREATE INDEX IF NOT EXISTS idx_grades_assignment ON grades(assignment_id);
 `;
 
 const g = globalThis as unknown as { __dzDb?: DatabaseSync };

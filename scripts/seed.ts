@@ -6,7 +6,7 @@ import { db } from '../src/lib/db';
 import { createUser } from '../src/lib/auth';
 import { loadModules } from '../src/lib/curriculum';
 import { recordAttempt, recordProgress } from '../src/lib/progress';
-import { assignModule, classesForTeacher, createClass, enrollByCode } from '../src/lib/classroom';
+import { assignModule, classesForTeacher, createClass, enrollByCode, listAssignments, recordGrade, setRubric, submitWork } from '../src/lib/classroom';
 
 const PEOPLE = [
   { email: 'teacher@dead3ars.test', name: 'Dr. A. Teacher', password: 'teacher-pass-2026', role: 'teacher' as const },
@@ -63,9 +63,14 @@ if (mods.length) {
  */
 const teacherId = users['teacher@dead3ars.test'];
 if (teacherId && mods.length) {
-  let klass: { id: number; name: string; join_code: string } | undefined = classesForTeacher(teacherId)[0];
+  /* Look the demo class up by name, not by recency — a smoke-test class created
+   * since the last seed would otherwise be picked up and seeded instead. */
+  const DEMO = 'CS 4700 — Offensive Security';
+  let klass: { id: number; name: string; join_code: string } | undefined = classesForTeacher(teacherId).find(
+    (c) => c.name === DEMO,
+  );
   if (!klass) {
-    klass = createClass(teacherId, 'CS 4700 — Offensive Security');
+    klass = createClass(teacherId, DEMO);
     console.log(`created class "${klass.name}"  (join code: ${klass.join_code})`);
   } else {
     console.log(`exists  class "${klass.name}"  (join code: ${klass.join_code})`);
@@ -80,6 +85,36 @@ if (teacherId && mods.length) {
   const dueDates = [iso(-21), iso(-10), iso(4), iso(11)];
   mods.slice(0, dueDates.length).forEach((m, i) => assignModule(teacherId, klass!.id, m.id, dueDates[i]));
   console.log(`assigned ${Math.min(dueDates.length, mods.length)} module(s) to "${klass.name}"`);
+
+  /* A graded submission and an ungraded one, so both grading states are visible. */
+  const assignments = listAssignments(klass.id);
+  const rubric = [
+    { name: 'Technical accuracy', description: 'Findings are correct and reproducible.', points: 40 },
+    { name: 'Evidence quality', description: 'Screenshots or output back each claim.', points: 30 },
+    { name: 'Defensive insight', description: 'Names the control that would stop it.', points: 30 },
+  ];
+  if (assignments[0]) {
+    setRubric(assignments[0].id, rubric);
+    submitWork(
+      assignments[0].id,
+      users['ada@dead3ars.test'],
+      'Ran the lab end to end. Recon surfaced the legacy admin endpoint, which still accepted\n' +
+        'the default credential from the module. Log attached in the linked gist.',
+      'https://gist.github.com/example/ada-m01',
+    );
+    recordGrade(assignments[0].id, users['ada@dead3ars.test'], 88, 100, 'Thorough write-up. Watch the length — lead with the finding.');
+    console.log('seeded a graded submission for ada on the first assignment');
+  }
+  if (assignments[1]) {
+    setRubric(assignments[1].id, rubric);
+    submitWork(
+      assignments[1].id,
+      users['grace@dead3ars.test'],
+      'Partial write-up submitted; still collecting evidence for the second half.',
+      '',
+    );
+    console.log('seeded an ungraded submission for grace');
+  }
 }
 
 console.log('\ndone.');

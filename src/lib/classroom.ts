@@ -158,11 +158,16 @@ export function listAssignments(classId: number): AssignmentRow[] {
 
 /* Store a comparable "YYYY-MM-DD HH:MM:SS" string: a bare date means the end of
  * that day, so work due today is not flagged overdue at 00:01. */
-function normalizeDue(input: string | null | undefined): string | null {
+export function normalizeDue(input: string | null | undefined): string | null {
   if (!input) return null;
   const m = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?/.exec(input.trim());
   if (!m) return null;
   return `${m[1]} ${m[2] ? `${m[2]}:00` : '23:59:59'}`;
+}
+
+export function setAssignmentDue(assignmentId: number, dueAt: string | null | undefined): AssignmentRow | undefined {
+  db().prepare('UPDATE assignments SET due_at = ? WHERE id = ?').run(normalizeDue(dueAt), assignmentId);
+  return assignmentById(assignmentId);
 }
 
 export function assignModule(
@@ -201,49 +206,6 @@ export interface StudentAssignment {
   status: Status | null;
   best_score: number | null;
   best_total: number | null;
-}
-
-export function assignmentsForStudent(studentId: number): StudentAssignment[] {
-  const rows = db()
-    .prepare(
-      `SELECT c.id AS class_id, c.name AS class_name, a.module_id, a.due_at
-         FROM assignments a
-         JOIN classes c ON c.id = a.class_id
-         JOIN enrollments e ON e.class_id = c.id AND e.student_id = ?
-        ORDER BY (a.due_at IS NULL), a.due_at, a.module_id`,
-    )
-    .all(studentId) as unknown as {
-    class_id: number;
-    class_name: string;
-    module_id: string;
-    due_at: string | null;
-  }[];
-
-  const status = new Map<string, Status>();
-  for (const p of db()
-    .prepare('SELECT module_id, status FROM progress WHERE user_id = ?')
-    .all(studentId) as unknown as { module_id: string; status: Status }[]) {
-    status.set(p.module_id, p.status);
-  }
-
-  /* Best attempt per module, reduced here rather than in SQL. */
-  const best = new Map<string, { score: number; total: number }>();
-  for (const a of db()
-    .prepare('SELECT module_id, score, total FROM quiz_attempts WHERE user_id = ?')
-    .all(studentId) as unknown as { module_id: string; score: number; total: number }[]) {
-    const cur = best.get(a.module_id);
-    if (!cur || a.score / a.total > cur.score / cur.total) best.set(a.module_id, { score: a.score, total: a.total });
-  }
-
-  return rows.map((r) => {
-    const b = best.get(r.module_id);
-    return {
-      ...r,
-      status: status.get(r.module_id) ?? null,
-      best_score: b?.score ?? null,
-      best_total: b?.total ?? null,
-    };
-  });
 }
 
 /* ---------- gradebook ---------- */
@@ -355,6 +317,287 @@ export function gradebook(classId: number): Gradebook {
 
 function csvField(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/* ---------- classwork: submissions, rubrics, and grades ---------- */
+
+export interface SubmissionRow {
+  id: number;
+  assignment_id: number;
+  student_id: number;
+  body: string;
+  link: string;
+  submitted_at: string;
+  updated_at: string;
+}
+
+export interface GradeRowEntry {
+  assignment_id: number;
+  student_id: number;
+  score: number;
+  max: number;
+  feedback: string;
+  graded_at: string;
+}
+
+export interface RubricCriterion {
+  name: string;
+  description: string;
+  points: number;
+}
+
+export function assignmentById(id: number): AssignmentRow | undefined {
+  return db().prepare('SELECT * FROM assignments WHERE id = ?').get(id) as unknown as AssignmentRow | undefined;
+}
+
+/* An assignment is reachable if its owning class belongs to `teacherId`. */
+export function ownedAssignment(teacherId: number, assignmentId: number): AssignmentRow | undefined {
+  const a = assignmentById(assignmentId);
+  return a && ownedClass(teacherId, a.class_id) ? a : undefined;
+}
+
+/* An assignment is visible to a student iff they are enrolled in its class. */
+export function studentAssignment(studentId: number, assignmentId: number): AssignmentRow | undefined {
+  const row = db()
+    .prepare(
+      `SELECT a.* FROM assignments a
+         JOIN enrollments e ON e.class_id = a.class_id AND e.student_id = ?
+        WHERE a.id = ?`,
+    )
+    .get(studentId, assignmentId) as unknown as AssignmentRow | undefined;
+  return row;
+}
+
+function parseRubric(raw: string): RubricCriterion[] {
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((c): c is RubricCriterion => typeof c === 'object' && c !== null)
+      .map((c) => ({
+        name: String((c as RubricCriterion).name ?? '').slice(0, 120),
+        description: String((c as RubricCriterion).description ?? '').slice(0, 500),
+        points: Math.max(0, Math.round(Number((c as RubricCriterion).points) || 0)),
+      }))
+      .filter((c) => c.name !== '');
+  } catch {
+    return [];
+  }
+}
+
+export function getRubric(assignmentId: number): RubricCriterion[] {
+  const row = db().prepare('SELECT criteria FROM rubrics WHERE assignment_id = ?').get(assignmentId) as
+    | { criteria: string }
+    | undefined;
+  return row ? parseRubric(row.criteria) : [];
+}
+
+export function setRubric(assignmentId: number, criteria: RubricCriterion[]): RubricCriterion[] {
+  const cleaned = criteria.slice(0, 20).map((c) => ({
+    name: c.name.slice(0, 120),
+    description: c.description.slice(0, 500),
+    points: Math.max(0, Math.round(c.points) || 0),
+  }));
+  db()
+    .prepare(
+      `INSERT INTO rubrics (assignment_id, criteria) VALUES (?, ?)
+       ON CONFLICT(assignment_id) DO UPDATE SET criteria = excluded.criteria`,
+    )
+    .run(assignmentId, JSON.stringify(cleaned));
+  return cleaned;
+}
+
+export function submitWork(
+  assignmentId: number,
+  studentId: number,
+  body: string,
+  link: string,
+): SubmissionRow {
+  db()
+    .prepare(
+      `INSERT INTO submissions (assignment_id, student_id, body, link, submitted_at, updated_at)
+       VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+       ON CONFLICT(assignment_id, student_id)
+       DO UPDATE SET body = excluded.body, link = excluded.link, updated_at = excluded.updated_at`,
+    )
+    .run(assignmentId, studentId, body.slice(0, 20000), link.trim().slice(0, 500));
+  return db()
+    .prepare('SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ?')
+    .get(assignmentId, studentId) as unknown as SubmissionRow;
+}
+
+export function submissionFor(assignmentId: number, studentId: number): SubmissionRow | undefined {
+  return db()
+    .prepare('SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ?')
+    .get(assignmentId, studentId) as unknown as SubmissionRow | undefined;
+}
+
+export function gradeFor(assignmentId: number, studentId: number): GradeRowEntry | undefined {
+  return db()
+    .prepare('SELECT * FROM grades WHERE assignment_id = ? AND student_id = ?')
+    .get(assignmentId, studentId) as unknown as GradeRowEntry | undefined;
+}
+
+export function recordGrade(
+  assignmentId: number,
+  studentId: number,
+  score: number,
+  max: number,
+  feedback: string,
+): GradeRowEntry {
+  db()
+    .prepare(
+      `INSERT INTO grades (assignment_id, student_id, score, max, feedback, graded_at)
+       VALUES (?, ?, ?, ?, ?, datetime('now'))
+       ON CONFLICT(assignment_id, student_id)
+       DO UPDATE SET score = excluded.score, max = excluded.max, feedback = excluded.feedback, graded_at = excluded.graded_at`,
+    )
+    .run(assignmentId, studentId, Math.max(0, Math.round(score)), Math.max(1, Math.round(max)), feedback.slice(0, 4000));
+  return gradeFor(assignmentId, studentId)!;
+}
+
+export function deleteGrade(assignmentId: number, studentId: number): boolean {
+  const info = db()
+    .prepare('DELETE FROM grades WHERE assignment_id = ? AND student_id = ?')
+    .run(assignmentId, studentId);
+  return Number(info.changes) > 0;
+}
+
+export interface WorkRow {
+  student: ClassStudent;
+  submission: SubmissionRow | null;
+  grade: GradeRowEntry | null;
+}
+
+/* The teacher's grading view of one assignment: every enrolled student, with
+ * their submission and grade if any. Absent work is a row, not a gap. */
+export function assignmentWork(assignmentId: number): WorkRow[] {
+  const a = assignmentById(assignmentId);
+  if (!a) return [];
+  const submissions = new Map<number, SubmissionRow>();
+  for (const s of db()
+    .prepare('SELECT * FROM submissions WHERE assignment_id = ?')
+    .all(assignmentId) as unknown as SubmissionRow[]) {
+    submissions.set(s.student_id, s);
+  }
+  const grades = new Map<number, GradeRowEntry>();
+  for (const g of db()
+    .prepare('SELECT * FROM grades WHERE assignment_id = ?')
+    .all(assignmentId) as unknown as GradeRowEntry[]) {
+    grades.set(g.student_id, g);
+  }
+  return roster(a.class_id).map((student) => ({
+    student,
+    submission: submissions.get(student.id) ?? null,
+    grade: grades.get(student.id) ?? null,
+  }));
+}
+
+/* A student's own work and marks, for their dashboard and the module page. */
+export interface StudentWork extends StudentAssignment {
+  assignment_id: number;
+  body: string | null;
+  link: string | null;
+  submitted_at: string | null;
+  score: number | null;
+  max: number | null;
+  feedback: string | null;
+  graded_at: string | null;
+}
+
+export function workForStudent(studentId: number, moduleId?: string): StudentWork[] {
+  const rows = db()
+    .prepare(
+      `SELECT a.id AS assignment_id, c.id AS class_id, c.name AS class_name, a.module_id, a.due_at,
+              s.body, s.link, s.submitted_at, g.score, g.max, g.feedback, g.graded_at
+         FROM assignments a
+         JOIN classes c ON c.id = a.class_id
+         JOIN enrollments e ON e.class_id = c.id AND e.student_id = ?
+         LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = e.student_id
+         LEFT JOIN grades g ON g.assignment_id = a.id AND g.student_id = e.student_id
+        WHERE (? IS NULL OR a.module_id = ?)
+        ORDER BY (a.due_at IS NULL), a.due_at, a.module_id`,
+    )
+    .all(studentId, moduleId ?? null, moduleId ?? null) as unknown as {
+    assignment_id: number;
+    class_id: number;
+    class_name: string;
+    module_id: string;
+    due_at: string | null;
+    body: string | null;
+    link: string | null;
+    submitted_at: string | null;
+    score: number | null;
+    max: number | null;
+    feedback: string | null;
+    graded_at: string | null;
+  }[];
+
+  const status = new Map<string, Status>();
+  for (const p of db()
+    .prepare('SELECT module_id, status FROM progress WHERE user_id = ?')
+    .all(studentId) as unknown as { module_id: string; status: Status }[]) {
+    status.set(p.module_id, p.status);
+  }
+
+  const best = new Map<string, { score: number; total: number }>();
+  for (const a of db()
+    .prepare('SELECT module_id, score, total FROM quiz_attempts WHERE user_id = ?')
+    .all(studentId) as unknown as { module_id: string; score: number; total: number }[]) {
+    const cur = best.get(a.module_id);
+    if (!cur || a.score / a.total > cur.score / cur.total) best.set(a.module_id, { score: a.score, total: a.total });
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    status: status.get(r.module_id) ?? null,
+    best_score: best.get(r.module_id)?.score ?? null,
+    best_total: best.get(r.module_id)?.total ?? null,
+  }));
+}
+
+/* ---------- per-class analytics ---------- */
+
+export interface ModuleAnalytic {
+  module_id: string;
+  students: number;
+  passed: number;
+  started: number;
+  average: number | null;
+  overdue: number;
+}
+
+export function classAnalytics(classId: number): ModuleAnalytic[] {
+  const gb = gradebook(classId);
+  const order = new Map(loadModules().map((m) => [m.id, m.order]));
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+  const out: ModuleAnalytic[] = gb.modules.map((id) => {
+    let students = 0;
+    let passed = 0;
+    let started = 0;
+    let overdue = 0;
+    const scores: number[] = [];
+    for (const row of gb.rows) {
+      const cell = row.cells[id];
+      if (!cell) continue;
+      students++;
+      if (cell.status !== null) started++;
+      if (cell.status === 'assessment-passed') passed++;
+      if (cell.score !== null && cell.total !== null && cell.total > 0) scores.push(cell.score / cell.total);
+      if (row.overdue.includes(id) && now) overdue++;
+    }
+    return {
+      module_id: id,
+      students,
+      passed,
+      started,
+      average: scores.length ? Math.round((scores.reduce((n, x) => n + x, 0) / scores.length) * 100) : null,
+      overdue,
+    };
+  });
+
+  return out.sort((a, b) => (order.get(a.module_id) ?? 1e9) - (order.get(b.module_id) ?? 1e9));
 }
 
 export function classCsv(classId: number): string | null {

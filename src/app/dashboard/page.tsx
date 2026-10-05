@@ -5,7 +5,7 @@ import { ModuleList } from '@/components/ModuleList';
 import { JoinClassForm } from '@/components/JoinClassForm';
 import { loadModules } from '@/lib/curriculum';
 import { attemptsFor, bestAttempt, progressMap, type Status } from '@/lib/progress';
-import { assignmentsForStudent, classesForStudent } from '@/lib/classroom';
+import { classesForStudent, workForStudent } from '@/lib/classroom';
 import { moduleHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
@@ -42,10 +42,11 @@ export default async function DashboardPage() {
   const notes = modules.filter((m) => progress[m.id] || attempts.some((a) => a.module_id === m.id));
 
   /* Work a teacher set, and the classes this student belongs to. */
-  const assigned = assignmentsForStudent(user.id);
+  const assigned = workForStudent(user.id);
   const titles = new Map(modules.map((m) => [m.id, m]));
   const myClasses = classesForStudent(user.id);
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const ungraded = assigned.filter((a) => a.submitted_at !== null && a.graded_at === null).length;
 
   return (
     <div className="space-y-10">
@@ -89,16 +90,29 @@ export default async function DashboardPage() {
         <section className="space-y-4">
           <div className="flex items-baseline justify-between">
             <h2 className="text-xl font-semibold">Assigned to you</h2>
-            <span className="dz-label">{assigned.length} from your classes</span>
+            <span className="dz-label">
+              {assigned.length} from your classes
+              {ungraded > 0 && ` · ${ungraded} awaiting a mark`}
+            </span>
           </div>
           <div className="space-y-2">
             {assigned.map((a) => {
               const mod = titles.get(a.module_id);
-              const overdue = a.due_at !== null && a.due_at < now && a.status !== 'assessment-passed';
+              const overdue = a.due_at !== null && a.due_at < now && a.graded_at === null;
+              const state =
+                a.graded_at !== null ? (
+                  <span className="text-accent-2">✓ marked {a.score}/{a.max}</span>
+                ) : a.submitted_at !== null ? (
+                  <span className="text-accent">submitted · awaiting a mark</span>
+                ) : a.status === 'assessment-passed' ? (
+                  <span className="text-accent-2">✓ module passed</span>
+                ) : (
+                  <span className="text-muted">not submitted</span>
+                );
               return (
                 <Link
-                  key={`${a.class_id}:${a.module_id}`}
-                  href={moduleHref(a.module_id)}
+                  key={a.assignment_id}
+                  href={`/assignments/${a.assignment_id}` as never}
                   className="dz-card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-accent"
                 >
                   <div>
@@ -117,15 +131,7 @@ export default async function DashboardPage() {
                       )}
                     </span>
                   </div>
-                  <span className="font-mono text-xs">
-                    {a.status === 'assessment-passed' ? (
-                      <span className="text-accent-2">✓ passed</span>
-                    ) : a.best_score !== null && a.best_total !== null ? (
-                      <span className="text-warn">{a.best_score}/{a.best_total} — keep going</span>
-                    ) : (
-                      <span className="text-muted">not started</span>
-                    )}
-                  </span>
+                  <span className="font-mono text-xs">{state}</span>
                 </Link>
               );
             })}
