@@ -499,6 +499,157 @@ check(
   (await call(`/teacher/assignments/${assignmentId}`, { cookie: studentCookie ?? undefined })).status === 307,
 );
 
+/* ---------- announcements ---------- */
+
+const ann = await call(`/api/classes/${klassId}/announcements`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { title: 'Welcome', body: 'Read module 1 before Friday.' },
+});
+check('a teacher can post an announcement', ann.status === 201, `status ${ann.status}`);
+
+check(
+  'a student cannot post an announcement',
+  (
+    await call(`/api/classes/${klassId}/announcements`, {
+      method: 'POST',
+      cookie: studentCookie ?? undefined,
+      body: { body: 'not allowed' },
+    })
+  ).status === 403,
+);
+
+const stuClass = await call(`/classes/${klassId}`, { cookie: studentCookie ?? undefined });
+check(
+  'the student class page shows the announcement and assigned work',
+  stuClass.status === 200 && stuClass.body.includes('Read module 1 before Friday'),
+  `status ${stuClass.status}`,
+);
+
+/* ---------- class discussion ---------- */
+
+/* Enrol a second student (ada) so the ownership rules can be exercised. */
+await call('/api/classes/join', { method: 'POST', cookie: ada.cookie ?? undefined, body: { code: joinCode } });
+
+const thread = await call(`/api/classes/${klassId}/discussion`, {
+  method: 'POST',
+  cookie: studentCookie ?? undefined,
+  body: { body: 'Is the lab doable on macOS?' },
+});
+const threadId = thread.json<{ post: { id: number } }>().post.id;
+check('a student can start a discussion thread', thread.status === 201, `status ${thread.status}`);
+
+const reply = await call(`/api/classes/${klassId}/discussion`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { body: 'Yes — the lab notes cover it.', parentId: threadId },
+});
+check('a teacher can reply to a thread', reply.status === 201, `status ${reply.status}`);
+
+const threadsRead = await call(`/api/classes/${klassId}/discussion`, { cookie: studentCookie ?? undefined });
+check(
+  'the discussion returns the thread with its reply nested',
+  threadsRead.status === 200 &&
+    threadsRead.json<{ threads: { replies: unknown[] }[] }>().threads.some((t) => t.replies.length > 0),
+);
+
+check(
+  'a non-member cannot read the discussion',
+  (await call(`/api/classes/${klassId}/discussion`, { cookie: otherTeacher.cookie ?? undefined })).status === 404,
+);
+
+check(
+  "an enrolled student cannot delete another student's post",
+  (
+    await call(`/api/classes/${klassId}/discussion?postId=${threadId}`, {
+      method: 'DELETE',
+      cookie: ada.cookie ?? undefined,
+    })
+  ).status === 403,
+);
+
+check(
+  'the class teacher can delete a student post',
+  (
+    await call(`/api/classes/${klassId}/discussion?postId=${threadId}`, {
+      method: 'DELETE',
+      cookie: teacher.cookie ?? undefined,
+    })
+  ).status === 200,
+);
+
+/* ---------- roster import ---------- */
+
+const importCsv = [
+  'name,email',
+  `Import One,imp-${stamp}-1@dead3ars.test`,
+  `Import Two,imp-${stamp}-2@dead3ars.test`,
+  'Ada Already Registered,ada@dead3ars.test',
+].join('\n');
+
+const imp = await call(`/api/classes/${klassId}/roster/import`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { csv: importCsv },
+});
+const impData = imp.json<{
+  created: number;
+  enrolled: number;
+  existing: number;
+  passwords: { email: string; password: string }[];
+}>();
+check('a teacher can import a roster', imp.status === 201, `status ${imp.status}`);
+check('the import creates an account per new email', impData.created === 2, `created ${impData.created}`);
+check('an email that already has an account is reused, not recreated', impData.existing === 1, `existing ${impData.existing}`);
+check('the import returns one password per new account', impData.passwords.length === 2, `len ${impData.passwords.length}`);
+
+const importedLogin = await call('/api/auth/login', {
+  method: 'POST',
+  body: { email: impData.passwords[0]?.email, password: impData.passwords[0]?.password },
+});
+check('a generated account can sign in with its one-time password', importedLogin.status === 200, `status ${importedLogin.status}`);
+
+const detailAfterImport = await call(`/api/classes/${klassId}`, { cookie: teacher.cookie ?? undefined });
+check(
+  'the imported students appear in the roster',
+  detailAfterImport
+    .json<{ roster: { email: string }[] }>()
+    .roster.some((r) => r.email === `imp-${stamp}-1@dead3ars.test`),
+);
+
+const badCsv = await call(`/api/classes/${klassId}/roster/import`, {
+  method: 'POST',
+  cookie: teacher.cookie ?? undefined,
+  body: { csv: 'A Real Student,ok@dead3ars.test\nnonsense-line-without-email\n' },
+});
+check(
+  'a malformed roster line is skipped rather than failing the import',
+  badCsv.status === 201 && badCsv.json<{ skipped: unknown[] }>().skipped.length === 1,
+  `status ${badCsv.status}`,
+);
+
+check(
+  'a student cannot import a roster',
+  (
+    await call(`/api/classes/${klassId}/roster/import`, {
+      method: 'POST',
+      cookie: studentCookie ?? undefined,
+      body: { csv: 'X,x@dead3ars.test' },
+    })
+  ).status === 403,
+);
+
+check(
+  "another teacher cannot import into a class they do not own",
+  (
+    await call(`/api/classes/${klassId}/roster/import`, {
+      method: 'POST',
+      cookie: otherTeacher.cookie ?? undefined,
+      body: { csv: 'X,x@dead3ars.test' },
+    })
+  ).status === 404,
+);
+
 /* ---------- sign out ---------- */
 
 const out = await call('/api/auth/logout', { method: 'POST', cookie: studentCookie ?? undefined });

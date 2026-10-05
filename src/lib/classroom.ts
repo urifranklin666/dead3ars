@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
-import { db } from './db';
+import { db, findUserByEmail } from './db';
+import { createUser } from './auth';
 import { loadModules } from './curriculum';
 import type { Status } from './progress';
 
@@ -556,8 +557,269 @@ export function workForStudent(studentId: number, moduleId?: string): StudentWor
   }));
 }
 
-/* ---------- per-class analytics ---------- */
+/* ---------- announcements and class discussion ---------- */
 
+export interface AnnouncementRow {
+  id: number;
+  class_id: number;
+  author_id: number;
+  title: string;
+  body: string;
+  created_at: string;
+}
+
+export interface Announcement extends AnnouncementRow {
+  author_name: string;
+}
+
+export function listAnnouncements(classId: number): Announcement[] {
+  return db()
+    .prepare(
+      `SELECT a.*, u.name AS author_name
+         FROM announcements a
+         JOIN users u ON u.id = a.author_id
+        WHERE a.class_id = ?
+        ORDER BY a.created_at DESC, a.id DESC`,
+    )
+    .all(classId) as unknown as Announcement[];
+}
+
+export function postAnnouncement(classId: number, authorId: number, title: string, body: string): Announcement {
+  const info = db()
+    .prepare('INSERT INTO announcements (class_id, author_id, title, body) VALUES (?, ?, ?, ?)')
+    .run(classId, authorId, title.trim().slice(0, 200), body.slice(0, 20000));
+  return db()
+    .prepare(
+      `SELECT a.*, u.name AS author_name
+         FROM announcements a JOIN users u ON u.id = a.author_id
+        WHERE a.id = ?`,
+    )
+    .get(Number(info.lastInsertRowid)) as unknown as Announcement;
+}
+
+export function deleteAnnouncement(teacherId: number, id: number): boolean {
+  const row = db().prepare('SELECT class_id FROM announcements WHERE id = ?').get(id) as
+    | { class_id: number }
+    | undefined;
+  if (!row || !ownedClass(teacherId, row.class_id)) return false;
+  const info = db().prepare('DELETE FROM announcements WHERE id = ?').run(id);
+  return Number(info.changes) > 0;
+}
+
+export interface DiscussionPost extends DiscussionRow {
+  author_name: string;
+  author_role: string;
+  replies: DiscussionPost[];
+}
+
+interface DiscussionRow {
+  id: number;
+  class_id: number;
+  author_id: number;
+  parent_id: number | null;
+  body: string;
+  created_at: string;
+}
+
+/* Threads oldest-first with replies nested, so the conversation reads top to
+ * bottom. Ordering is by creation, not id, so an edited row keeps its place. */
+export function listDiscussion(classId: number): DiscussionPost[] {
+  const rows = db()
+    .prepare(
+      `SELECT d.*, u.name AS author_name, u.role AS author_role
+         FROM discussions d
+         JOIN users u ON u.id = d.author_id
+        WHERE d.class_id = ?
+        ORDER BY d.created_at, d.id`,
+    )
+    .all(classId) as unknown as DiscussionPost[];
+
+  const byId = new Map<number, DiscussionPost>();
+  for (const r of rows) byId.set(r.id, { ...r, replies: [] });
+
+  const roots: DiscussionPost[] = [];
+  for (const r of rows) {
+    const post = byId.get(r.id)!;
+    if (r.parent_id !== null) byId.get(r.parent_id)?.replies.push(post);
+    else roots.push(post);
+  }
+  return roots;
+}
+
+export function postDiscussion(
+  classId: number,
+  authorId: number,
+  body: string,
+  parentId: number | null,
+): DiscussionRow {
+  /* A reply must point at a thread in the same class. */
+  if (parentId !== null) {
+    const parent = db().prepare('SELECT class_id FROM discussions WHERE id = ?').get(parentId) as
+      | { class_id: number }
+      | undefined;
+    if (!parent || parent.class_id !== classId) throw new Error('BAD_PARENT');
+  }
+  const info = db()
+    .prepare('INSERT INTO discussions (class_id, author_id, parent_id, body) VALUES (?, ?, ?, ?)')
+    .run(classId, authorId, parentId, body.slice(0, 8000));
+  return db()
+    .prepare('SELECT * FROM discussions WHERE id = ?')
+    .get(Number(info.lastInsertRowid)) as unknown as DiscussionRow;
+}
+
+export function deleteDiscussionPost(id: number): boolean {
+  const info = db().prepare('DELETE FROM discussions WHERE id = ?').run(id);
+  return Number(info.changes) > 0;
+}
+
+/* Whether a student is enrolled, or a teacher owns, this class — the single
+ * gate for a class's community surfaces. */
+export function canSeeClass(userId: number, role: string, classId: number): boolean {
+  const k = classById(classId);
+  if (!k) return false;
+  if (k.teacher_id === userId) return true;
+  if (role === 'admin') return true;
+  const member = db()
+    .prepare('SELECT 1 FROM enrollments WHERE class_id = ? AND student_id = ?')
+    .get(classId, userId);
+  return member !== undefined;
+}
+
+/* ---------- roster import ---------- */
+
+export interface ParsedRoster {
+  rows: { name: string; email: string }[];
+  skipped: { line: number; reason: string }[];
+}
+
+/* Parse a roster CSV. Accepts a "name,email" or "email,name" header, or bare
+ * rows, so a teacher can paste whatever their SIS exported. Quoted fields and
+ * embedded commas are handled; anything without a plausible email is skipped
+ * with a reason, so one bad line does not fail the whole import. */
+export function parseRosterCsv(text: string): ParsedRoster {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '');
+  if (lines.length === 0) return { rows: [], skipped: [] };
+
+  const split = (line: string): string[] => {
+    const out: string[] = [];
+    let cur = '';
+    let quoted = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (quoted) {
+        if (ch === '"' && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else if (ch === '"') quoted = false;
+        else cur += ch;
+      } else if (ch === '"') quoted = true;
+      else if (ch === ',') {
+        out.push(cur);
+        cur = '';
+      } else cur += ch;
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
+  };
+
+  const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+  let start = 0;
+  let emailFirst = false;
+  const first = split(lines[0]);
+  const lower = first.map((s) => s.toLowerCase());
+  if (lower.some((s) => s === 'email' || s === 'e-mail' || s === 'mail')) {
+    emailFirst = lower[0] !== 'name';
+    start = 1;
+  }
+
+  const rows: { name: string; email: string }[] = [];
+  const skipped: { line: number; reason: string }[] = [];
+  for (let i = start; i < lines.length; i++) {
+    const fields = split(lines[i]);
+    let email = '';
+    let name = '';
+    if (emailFirst) {
+      email = fields[0] ?? '';
+      name = fields[1] ?? '';
+    } else if (isEmail(fields[1] ?? '')) {
+      name = fields[0] ?? '';
+      email = fields[1] ?? '';
+    } else {
+      email = fields[0] ?? '';
+      name = fields[1] ?? '';
+    }
+    email = email.trim();
+    name = name.trim();
+
+    if (!isEmail(email)) {
+      skipped.push({ line: i + 1, reason: `no valid email in "${lines[i].slice(0, 40)}"` });
+      continue;
+    }
+    if (!name) name = email.split('@')[0];
+    rows.push({ name: name.slice(0, 120), email });
+  }
+
+  /* De-duplicate by email, keeping the first occurrence. */
+  const seen = new Set<string>();
+  const unique = rows.filter((r) => {
+    const key = r.email.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return { rows: unique, skipped };
+}
+
+export interface ImportResult {
+  created: number;
+  enrolled: number;
+  existing: number;
+  skipped: { line: number; reason: string }[];
+}
+
+/* Create accounts for a parsed roster and enrol them. An email that already has
+ * an account is enrolled rather than recreated — a teacher re-running an import
+ * after adding one line must not fail on the students already present. */
+export function importRoster(
+  teacherId: number,
+  classId: number,
+  rows: { name: string; email: string }[],
+  skipped: { line: number; reason: string }[],
+  makePassword: () => string,
+): ImportResult & { passwords: { email: string; password: string }[] } {
+  const klass = ownedClass(teacherId, classId);
+  if (!klass) return { created: 0, enrolled: 0, existing: 0, skipped, passwords: [] };
+
+  const passwords: { email: string; password: string }[] = [];
+  let created = 0;
+  let enrolled = 0;
+  let existing = 0;
+
+  for (const row of rows) {
+    let userId: number;
+    const found = findUserByEmail(row.email);
+    if (found) {
+      userId = found.id;
+      existing++;
+    } else {
+      const password = makePassword();
+      const user = createUser({ name: row.name, email: row.email, password, role: 'student' });
+      userId = user.id;
+      passwords.push({ email: row.email, password });
+      created++;
+    }
+    const info = db()
+      .prepare('INSERT OR IGNORE INTO enrollments (class_id, student_id) VALUES (?, ?)')
+      .run(classId, userId);
+    if (Number(info.changes) > 0) enrolled++;
+  }
+
+  return { created, enrolled, existing, skipped, passwords };
+}
+
+/* ---------- per-class analytics ---------- */
 export interface ModuleAnalytic {
   module_id: string;
   students: number;

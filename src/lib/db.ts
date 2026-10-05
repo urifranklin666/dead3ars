@@ -111,6 +111,27 @@ CREATE TABLE IF NOT EXISTS rubrics (
   criteria      TEXT NOT NULL DEFAULT '[]'
 );
 
+/* Class community: announcements a teacher posts to a class, and a discussion
+ * where anyone with access to the class can post. A discussion row with a
+ * parent_id is a reply; without one it starts a thread. */
+CREATE TABLE IF NOT EXISTS announcements (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  author_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      TEXT NOT NULL DEFAULT '',
+  body       TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS discussions (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  author_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  parent_id  INTEGER REFERENCES discussions(id) ON DELETE CASCADE,
+  body       TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON quiz_attempts(user_id, module_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id);
@@ -119,6 +140,8 @@ CREATE INDEX IF NOT EXISTS idx_assignments_class ON assignments(class_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
 CREATE INDEX IF NOT EXISTS idx_grades_assignment ON grades(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_announcements_class ON announcements(class_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_discussions_class ON discussions(class_id, created_at);
 `;
 
 const g = globalThis as unknown as { __dzDb?: DatabaseSync };

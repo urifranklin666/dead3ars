@@ -145,9 +145,9 @@ export default async function DashboardPage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="dz-label">Your classes</span>
               {myClasses.map((c) => (
-                <span key={c.id} className="dz-badge dz-badge-neutral">
+                <Link key={c.id} href={`/classes/${c.id}` as never} className="dz-badge dz-badge-neutral hover:text-accent">
                   {c.name}
-                </span>
+                </Link>
               ))}
             </div>
             <p className="text-xs text-muted">

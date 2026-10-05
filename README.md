@@ -25,6 +25,12 @@ The name is a joke at the reader's expense. The content is not.
 - **Classes and assignments.** A teacher creates a class, hands out its join code, and
   assigns modules with optional due dates. Each class has a gradebook and a CSV export;
   assigned work appears on the student's dashboard, with overdue work flagged.
+- **Classwork and grading.** Students submit a write-up and a link against an assignment;
+  teachers publish a rubric, grade each student with feedback, and see every submission in
+  one place. Per-class analytics show which modules the cohort is stuck on.
+- **Community and roster.** Teachers post announcements, the class has a threaded
+  discussion open to its members, and a teacher can bulk-import a roster from CSV —
+  new emails get accounts, existing ones are enrolled.
 
 ## Stack
 

@@ -2,9 +2,12 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { AssignForm } from '@/components/AssignForm';
+import { AnnouncementComposer } from '@/components/AnnouncementComposer';
 import { ClassCodePanel } from '@/components/ClassCodePanel';
+import { DiscussionThread } from '@/components/DiscussionThread';
 import { RemoveAssignmentButton } from '@/components/RemoveAssignmentButton';
-import { gradebook, listAssignments, ownedClass, roster } from '@/lib/classroom';
+import { RosterImport } from '@/components/RosterImport';
+import { gradebook, listAnnouncements, listAssignments, listDiscussion, ownedClass, roster } from '@/lib/classroom';
 import { loadModules } from '@/lib/curriculum';
 import { studentHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
@@ -35,6 +38,9 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
 
   const gb = gradebook(classId);
   const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+  const announcements = listAnnouncements(classId);
+  const threads = listDiscussion(classId);
 
   // Roster members who have not yet joined — enrolled but no progress on any assignment.
   const atRisk = gb.rows.filter((r) => r.overdue.length > 0);
@@ -78,6 +84,51 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
       </header>
 
       <ClassCodePanel classId={classId} code={klass.join_code} redirectAfterDelete="/teacher/classes" />
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">Announcements</h2>
+          <AnnouncementComposer classId={classId} />
+        </div>
+        {announcements.length === 0 ? (
+          <p className="text-sm text-muted">No announcements yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {announcements.map((a) => (
+              <article key={a.id} className="dz-card p-4">
+                {a.title && <p className="font-medium">{a.title}</p>}
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{a.body}</p>
+                <p className="mt-1 text-xs text-muted">
+                  {a.author_name} · {a.created_at.slice(0, 16).replace('T', ' ')} UTC
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Class discussion</h2>
+        <DiscussionThread classId={classId} threads={threads} meId={user.id} canModerate />
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">Roster</h2>
+          <RosterImport classId={classId} />
+        </div>
+        {roster(classId).length === 0 ? (
+          <p className="text-sm text-muted">Nobody has joined yet. Share the join code above, or import a roster.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {roster(classId).map((s) => (
+              <Link key={s.id} href={studentHref(s.id)} className="dz-btn text-sm">
+                {s.name}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Assignments</h2>
