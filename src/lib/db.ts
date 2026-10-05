@@ -132,6 +132,20 @@ CREATE TABLE IF NOT EXISTS discussions (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+/* An append-only trail of who did what to whom. actor_id is ON DELETE SET NULL
+ * so the history survives the account being removed — the row is the record. */
+CREATE TABLE IF NOT EXISTS audit_log (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  actor_email TEXT NOT NULL DEFAULT '',
+  action      TEXT NOT NULL,
+  target_type TEXT NOT NULL DEFAULT '',
+  target_id   TEXT NOT NULL DEFAULT '',
+  detail      TEXT NOT NULL DEFAULT '',
+  ip          TEXT NOT NULL DEFAULT '',
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON quiz_attempts(user_id, module_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id);
@@ -142,6 +156,8 @@ CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
 CREATE INDEX IF NOT EXISTS idx_grades_assignment ON grades(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_announcements_class ON announcements(class_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_discussions_class ON discussions(class_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
 `;
 
 const g = globalThis as unknown as { __dzDb?: DatabaseSync };
@@ -180,4 +196,21 @@ export function listUsers(role?: string): UserRow[] {
     ? db().prepare('SELECT * FROM users WHERE role = ? ORDER BY name').all(role)
     : db().prepare('SELECT * FROM users ORDER BY role, name').all();
   return q as unknown as UserRow[];
+}
+
+export function userCountsByRole(): Record<string, number> {
+  const rows = db().prepare('SELECT role, COUNT(*) AS n FROM users GROUP BY role').all() as unknown as {
+    role: string;
+    n: number;
+  }[];
+  const out: Record<string, number> = {};
+  for (const r of rows) out[r.role] = r.n;
+  return out;
+}
+
+/* Role is the one mutable field on a user; email and password are not edited
+ * here. Callers must be admins (the route enforces it). */
+export function setUserRole(id: number, role: UserRow['role']): UserRow | undefined {
+  const info = db().prepare('UPDATE users SET role = ? WHERE id = ?').run(role, id);
+  return Number(info.changes) > 0 ? findUserById(id) : undefined;
 }

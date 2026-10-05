@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.github
+data
+*.db
+*.db-shm
+*.db-wal
+npm-debug.log*
+.qwen
+docs
+*.md
+!README.md
+# ...but the module markdown is read from disk at runtime and must ship.
+!content/modules/*.md

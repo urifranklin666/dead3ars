@@ -59,6 +59,7 @@ Seed credentials (printed by `npm run seed` — change them before real use):
 
 | Role    | Email                   | Password            |
 | ------- | ----------------------- | ------------------- |
+| Admin   | `admin@dead3ars.test`   | `admin-pass-2026`   |
 | Teacher | `teacher@dead3ars.test` | `teacher-pass-2026` |
 | Student | `ada@dead3ars.test`     | `student-pass-2026` |
 | Student | `grace@dead3ars.test`   | `student-pass-2026` |
@@ -77,6 +78,7 @@ npm run lint              # eslint
 npm run typecheck         # tsc --noEmit
 npm run check:curriculum  # validate every module's frontmatter and shape
 npm run seed              # demo users + progress
+npm run init:db           # create the schema and ensure an admin account
 npm run test:smoke        # end-to-end HTTP test (needs the server running)
 npm run test:visual       # computed-style check (needs Chrome; see below)
 ```
@@ -86,8 +88,8 @@ npm run test:visual       # computed-style check (needs Chrome; see below)
 `npm run test:smoke` drives the running server over real HTTP and asserts the
 security-relevant behaviour, not just the happy path: that the answer explanations are absent
 from the rendered HTML, that grading is server-side, that a client cannot self-report a passed
-assessment, that a student is refused the teacher API, and that progress, notes, and sessions
-behave. 44 checks.
+assessment, that a student is refused the teacher and admin APIs, that grading, roster import,
+and role changes are audited, and that progress, notes, and sessions behave. 111 checks.
 
 `npm run test:visual` launches headless Chrome and reads **computed** styles over the
 DevTools Protocol. A screenshot cannot be asserted and a stylesheet existing proves nothing,
@@ -111,6 +113,48 @@ control, a specific ethics boundary and legal note, a lab environment drawn from
 `sandbox | host | analysis | read-only`, and answer indices that are actually in range.
 
 New ids must match `^m\d{2}-[a-z0-9-]+$` and the filename must equal the id.
+
+## Deploy
+
+The build is a self-contained server (`output: "standalone"`), so the image carries only
+`server.js`, its traced dependencies, and the module markdown — not the source tree, not the
+dev dependencies, and not the database.
+
+```bash
+docker build -t dead3ars .
+docker run -d --name dead3ars -p 3000:3000 \
+  -v dead3ars-data:/data \
+  -e DZ_ADMIN_EMAIL=you@example.edu \
+  -e DZ_ADMIN_PASSWORD='a-long-password' \
+  dead3ars
+```
+
+| Variable            | Purpose                                                                |
+| ------------------- | ---------------------------------------------------------------------- |
+| `DZ_DB`             | SQLite path; the image sets `/data/dead3ars.db`, so mount a volume there |
+| `DZ_ADMIN_EMAIL`    | admin account to ensure on first boot (default `admin@dead3ars.local`) |
+| `DZ_ADMIN_PASSWORD` | its password; if unset a random one is generated and logged once      |
+| `DZ_INIT_ADMIN=0`   | skip admin creation entirely                                            |
+| `DZ_DEMO=1`         | show the demo credentials on the sign-in page (never in production)    |
+
+First boot is self-initialising. `src/instrumentation.ts` opens the database (which applies
+the schema) and ensures an admin account exists before the server serves, so a container
+carrying only the standalone output needs no `tsx` and no seed step. The same logic is
+available directly as `npm run init:db`. If an account already exists for `DZ_ADMIN_EMAIL`,
+it is promoted to admin rather than left unreachable; an existing admin is never touched.
+
+Two things are worth knowing when operating this:
+
+- **The database is created at runtime, never baked in.** `db.ts` resolves `DZ_DB` at build
+  time, so the tracer would otherwise record the local `data/dead3ars.db` as an asset and ship
+  developer data inside the image — at the exact path the volume is meant to occupy.
+  `outputFileTracingExcludes` prevents that (keys `/*` and `instrumentation`, because the
+  instrumentation trace is entered under its own name and never matches an app route), and the
+  Dockerfile additionally `rm -rf`s any traced copy, since the exclusion itself is inert on a
+  Windows build host.
+- **`/api/health` answers 200 only when the content directory and the database are both
+  reachable**, and reports the module count, so a mis-traced image is visible from the probe
+  rather than at the first module request. The Dockerfile wires it to `HEALTHCHECK`.
 
 ## Scope and safety
 

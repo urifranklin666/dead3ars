@@ -10,6 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "check:curriculum": "tsx scripts/check-curriculum.ts",
     "seed": "tsx scripts/seed.ts",
+    "init:db": "tsx scripts/init-db.ts",
     "test:smoke": "tsx scripts/smoke.mts",
     "test:visual": "tsx scripts/visual-check.mts"
   },

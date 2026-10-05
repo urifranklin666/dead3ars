@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { requireUser } from '@/lib/auth';
 import { authError, fail, ok } from '@/lib/api';
 import { classesForStudent, enrollByCode } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* A student enrols in a class with its join code. The code is the only thing
  * that grants membership, so a student cannot enumerate classes they were not
@@ -26,6 +27,15 @@ export async function POST(req: Request) {
 
     try {
       const klass = enrollByCode(student.id, parsed.data.code);
+      audit({
+        actorId: student.id,
+        actorEmail: student.email,
+        action: 'class.join',
+        targetType: 'class',
+        targetId: klass.id,
+        detail: klass.name,
+        ip: clientIp(req),
+      });
       return ok({ klass });
     } catch (e) {
       if (e instanceof Error && e.message === 'NO_SUCH_CLASS') {

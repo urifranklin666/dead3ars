@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireTeacher } from '@/lib/auth';
 import { authError, fail, ok } from '@/lib/api';
 import { importRoster, ownedClass, parseRosterCsv } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* Bulk roster import. The teacher pastes or uploads CSV — "name,email" or a
  * header row, either column order. New emails get accounts with a generated
@@ -37,6 +38,15 @@ export async function POST(req: Request, ctx: RouteContext<'/api/classes/[id]/ro
     }
 
     const result = importRoster(teacher.id, classId, roster.rows, roster.skipped, makePassword);
+    audit({
+      actorId: teacher.id,
+      actorEmail: teacher.email,
+      action: 'roster.import',
+      targetType: 'class',
+      targetId: classId,
+      detail: `${result.created} created, ${result.enrolled} enrolled, ${result.existing} existing`,
+      ip: clientIp(req),
+    });
     return ok(result, 201);
   } catch (e) {
     return authError(e) ?? fail('could not import the roster', 500);

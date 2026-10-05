@@ -819,6 +819,66 @@ export function importRoster(
   return { created, enrolled, existing, skipped, passwords };
 }
 
+/* ---------- instance administration ---------- */
+
+export interface AdminClassRow {
+  id: number;
+  name: string;
+  join_code: string;
+  teacher_name: string;
+  students: number;
+  assignments: number;
+  created_at: string;
+}
+
+/* Every class on the instance, for the admin console. Scoped only by the admin
+ * check in the route, never by teacher ownership. */
+export function allClasses(): AdminClassRow[] {
+  return db()
+    .prepare(
+      `SELECT c.id, c.name, c.join_code, c.created_at, u.name AS teacher_name,
+              (SELECT COUNT(*) FROM enrollments e WHERE e.class_id = c.id) AS students,
+              (SELECT COUNT(*) FROM assignments a WHERE a.class_id = c.id) AS assignments
+         FROM classes c
+         JOIN users u ON u.id = c.teacher_id
+        ORDER BY c.created_at DESC`,
+    )
+    .all() as unknown as AdminClassRow[];
+}
+
+export interface InstanceStats {
+  users: Record<string, number>;
+  classes: number;
+  enrollments: number;
+  assignments: number;
+  submissions: number;
+  grades: number;
+  auditEvents: number;
+}
+
+function scalar(sql: string): number {
+  return (db().prepare(sql).get() as { n: number }).n;
+}
+
+export function instanceStats(): InstanceStats {
+  const users: Record<string, number> = {};
+  for (const r of db().prepare('SELECT role, COUNT(*) AS n FROM users GROUP BY role').all() as unknown as {
+    role: string;
+    n: number;
+  }[]) {
+    users[r.role] = r.n;
+  }
+  return {
+    users,
+    classes: scalar('SELECT COUNT(*) AS n FROM classes'),
+    enrollments: scalar('SELECT COUNT(*) AS n FROM enrollments'),
+    assignments: scalar('SELECT COUNT(*) AS n FROM assignments'),
+    submissions: scalar('SELECT COUNT(*) AS n FROM submissions'),
+    grades: scalar('SELECT COUNT(*) AS n FROM grades'),
+    auditEvents: scalar('SELECT COUNT(*) AS n FROM audit_log'),
+  };
+}
+
 /* ---------- per-class analytics ---------- */
 export interface ModuleAnalytic {
   module_id: string;

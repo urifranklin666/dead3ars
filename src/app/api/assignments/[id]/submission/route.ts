@@ -8,6 +8,7 @@ import {
   submissionFor,
   submitWork,
 } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* A student's own work on one assignment: read it back, or submit/resubmit.
  * Reachable only through enrolment in the assignment's class, so a student
@@ -55,6 +56,15 @@ export async function PUT(req: Request, ctx: RouteContext<'/api/assignments/[id]
     }
 
     const submission = submitWork(assignmentId, student.id, parsed.data.body, parsed.data.link);
+    audit({
+      actorId: student.id,
+      actorEmail: student.email,
+      action: 'submission.save',
+      targetType: 'assignment',
+      targetId: assignmentId,
+      detail: `${submission.body.length} chars${submission.link ? ' + link' : ''}`,
+      ip: clientIp(req),
+    });
     return ok({ submission });
   } catch (e) {
     return authError(e) ?? fail('could not save your submission', 500);

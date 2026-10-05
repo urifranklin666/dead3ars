@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createUser } from '@/lib/auth';
 import { createSession, SESSION_COOKIE } from '@/lib/auth';
 import { findUserByEmail } from '@/lib/db';
+import { audit, clientIp } from '@/lib/audit';
 import { fail, ok, SESSION_COOKIE_OPTS } from '@/lib/api';
 
 const Body = z.object({
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
     const { token } = createSession(user.id);
     const jar = await cookies();
     jar.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTS);
+    audit({ actorId: user.id, actorEmail: user.email, action: 'auth.register', detail: role, ip: clientIp(req) });
     return ok({ user });
   } catch (e) {
     return fail(e instanceof Error ? e.message : 'could not create the account', 500);

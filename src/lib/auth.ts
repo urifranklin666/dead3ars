@@ -80,6 +80,13 @@ export async function requireTeacher(): Promise<SessionUser> {
   return user;
 }
 
+/* Admin-only surfaces: instance statistics and the audit trail. */
+export async function requireAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== 'admin') throw new Error('FORBIDDEN');
+  return user;
+}
+
 /* ---------- convenience used by the seed script and API ---------- */
 
 export function createUser(input: {

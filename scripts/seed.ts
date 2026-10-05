@@ -13,6 +13,7 @@ const PEOPLE = [
   { email: 'ada@dead3ars.test', name: 'Ada Student', password: 'student-pass-2026', role: 'student' as const },
   { email: 'grace@dead3ars.test', name: 'Grace Student', password: 'student-pass-2026', role: 'student' as const },
   { email: 'linus@dead3ars.test', name: 'Linus Student', password: 'student-pass-2026', role: 'student' as const },
+  { email: 'admin@dead3ars.test', name: 'Instance Admin', password: 'admin-pass-2026', role: 'admin' as const },
 ];
 
 const users: Record<string, number> = {};

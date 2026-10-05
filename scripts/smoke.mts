@@ -650,6 +650,90 @@ check(
   ).status === 404,
 );
 
+/* ---------- health, admin oversight, and the audit trail ---------- */
+
+const health = await call('/api/health');
+check('the health probe reports ok', health.status === 200 && health.json<{ status: string }>().status === 'ok', `status ${health.status}`);
+check('the health probe counts the curriculum', health.json<{ modules: number }>().modules > 0);
+
+/* A student must not reach the admin console or its API. */
+check(
+  'a student cannot open the admin overview',
+  (await call('/api/admin/overview', { cookie: studentCookie ?? undefined })).status === 403,
+);
+check(
+  'a teacher cannot open the admin overview',
+  (await call('/api/admin/overview', { cookie: teacher.cookie ?? undefined })).status === 403,
+);
+check(
+  'an anonymous visitor cannot read the audit trail',
+  (await call('/api/admin/overview')).status === 401,
+);
+
+const adminLogin = await call('/api/auth/login', {
+  method: 'POST',
+  body: { email: 'admin@dead3ars.test', password: 'admin-pass-2026' },
+});
+check('the seeded admin can sign in', adminLogin.status === 200, `status ${adminLogin.status}`);
+const adminCookie = adminLogin.cookie ?? undefined;
+
+const adminOverview = await call('/api/admin/overview', { cookie: adminCookie });
+const overview = adminOverview.json<{
+  stats: { classes: number; auditEvents: number; users: Record<string, number> };
+  users: { email: string; role: string }[];
+  classes: { name: string }[];
+  audit: { rows: { action: string }[] };
+}>();
+check('an admin can read the instance overview', adminOverview.status === 200, `status ${adminOverview.status}`);
+check('the overview reports at least one class', overview.stats.classes >= 1, `classes ${overview.stats.classes}`);
+check('the overview lists the seeded admin account', overview.users.some((u) => u.role === 'admin'));
+check('the overview includes the audit trail', overview.stats.auditEvents > 0, `events ${overview.stats.auditEvents}`);
+
+/* The earlier checks must have left a trail: a login, a class creation, grades. */
+const actions = overview.audit.rows.map((r) => r.action);
+check(
+  'the audit trail recorded sign-ins, class creation, and grading',
+  ['auth.login', 'class.create', 'grade.record'].every((a) => actions.some((x) => x.startsWith(a.split('.')[0]))),
+  `saw ${[...new Set(actions)].slice(0, 6).join(', ')}`,
+);
+
+const adminPage = await call('/admin', { cookie: adminCookie });
+check(
+  'the admin console page renders',
+  adminPage.status === 200 && adminPage.body.includes('Audit trail'),
+  `status ${adminPage.status}`,
+);
+check(
+  'a teacher is redirected away from the admin console',
+  (await call('/admin', { cookie: teacher.cookie ?? undefined })).status === 307,
+);
+
+/* Role change: admin promotes a student, and is refused on their own row. */
+const promote = await call('/api/admin/role', {
+  method: 'POST',
+  cookie: adminCookie,
+  body: { userId: newStudentId, role: 'teacher' },
+});
+check('an admin can change a user role', promote.status === 200 && promote.json<{ changed: boolean }>().changed === true, `status ${promote.status}`);
+
+const selfDemote = await call('/api/admin/role', {
+  method: 'POST',
+  cookie: adminCookie,
+  body: { userId: adminLogin.json<{ user: { id: number } }>().user.id, role: 'student' },
+});
+check('an admin cannot change their own role', selfDemote.status === 400, `status ${selfDemote.status}`);
+
+check(
+  'a student cannot change roles',
+  (
+    await call('/api/admin/role', {
+      method: 'POST',
+      cookie: studentCookie ?? undefined,
+      body: { userId: newStudentId, role: 'admin' },
+    })
+  ).status === 403,
+);
+
 /* ---------- sign out ---------- */
 
 const out = await call('/api/auth/logout', { method: 'POST', cookie: studentCookie ?? undefined });

@@ -9,6 +9,7 @@ import {
   ownedAssignment,
   recordGrade,
 } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* The teacher's grading view of one assignment: every enrolled student's
  * submission plus the grade, or POST a grade. Ownership is checked through the
@@ -61,6 +62,15 @@ export async function POST(req: Request, ctx: RouteContext<'/api/assignments/[id
     }
 
     const grade = recordGrade(assignmentId, parsed.data.studentId, parsed.data.score, parsed.data.max, parsed.data.feedback);
+    audit({
+      actorId: teacher.id,
+      actorEmail: teacher.email,
+      action: 'grade.record',
+      targetType: 'assignment',
+      targetId: assignmentId,
+      detail: `student ${parsed.data.studentId}: ${parsed.data.score}/${parsed.data.max}`,
+      ip: clientIp(req),
+    });
     return ok({ grade }, 201);
   } catch (e) {
     return authError(e) ?? fail('could not save the grade', 500);

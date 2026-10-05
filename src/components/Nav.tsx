@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { SessionUser } from '@/lib/auth';
-import { isStaff } from '@/lib/session';
+import { isAdmin, isStaff } from '@/lib/session';
 import { SignOutButton } from './SignOutButton';
 
 export function Nav({ user }: { user: SessionUser | null }) {
@@ -34,6 +34,11 @@ export function Nav({ user }: { user: SessionUser | null }) {
                 Classes
               </Link>
             </>
+          )}
+          {isAdmin(user) && (
+            <Link href="/admin" className="hover:text-ink">
+              Admin
+            </Link>
           )}
         </nav>
 
