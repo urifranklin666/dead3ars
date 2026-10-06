@@ -172,7 +172,7 @@ export default async function DashboardPage() {
       {graded.length > 0 && (
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">Assessment history</h2>
-          <div className="dz-card overflow-x-auto">
+          <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Assessment history">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-left">

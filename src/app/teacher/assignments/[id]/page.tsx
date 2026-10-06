@@ -39,7 +39,7 @@ export default async function AssignmentGradingPage(props: PageProps<'/teacher/a
 
   return (
     <div className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/teacher/classes" className="hover:text-ink">
           classes
         </Link>

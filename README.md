@@ -81,6 +81,7 @@ npm run seed              # demo users + progress
 npm run init:db           # create the schema and ensure an admin account
 npm run test:smoke        # end-to-end HTTP test (needs the server running)
 npm run test:visual       # computed-style check (needs Chrome; see below)
+npm run test:a11y         # axe-core accessibility audit (needs Chrome; see below)
 ```
 
 ### The tests
@@ -98,6 +99,30 @@ so this exists to catch the "the page renders but is invisible" class of bug —
 `display: none`, a missing theme token, a `backdrop-filter` over the whole viewport. It needs
 Chrome; set `DZ_CHROME` if it is not at the default Windows path. It is not run in CI, where
 Chrome availability would make the gate unreliable.
+
+`npm run test:a11y` audits every page with [axe-core](https://github.com/dequelabs/axe-core)
+(WCAG 2.0/2.1 A + AA and the best-practice rules) at 1280px and 390px, signed in as each role,
+because a table-heavy teacher view can pass at desktop width and fail on a phone. axe-core is
+a pinned devDependency injected from `node_modules` — never a CDN, so the run asserts against
+the same bytes every time.
+
+- Only **serious** and **critical** violations fail the run; moderate and minor are printed as
+  notices so a backlog stays visible without making the gate flaky. `DZ_A11Y_ALL=1` gates on
+  those too.
+- Each page is asserted to be *the page asked for*: that no cookie failure left it on
+  `/login`, and that the role's own nav is present. Without that, a cookie that silently
+  failed to apply would audit the sign-in page and report a pass.
+  `DZ_A11Y_FORCE_ANON=1` withholds the role cookies to prove that check can fail.
+- Needs Chrome, like `test:visual`, and is not run in CI for the same reason.
+
+Two conventions the audit enforces, so they are worth knowing when adding UI:
+
+- **A link inside a sentence needs `.dz-link`**, which underlines it at rest. Colour alone is
+  not enough to identify a link (WCAG 1.4.1). A link that is the only thing in its block — a
+  nav item, a card, a table cell — does not need it, because its shape already marks it.
+- **A wrapper with `overflow-x-auto` needs `tabIndex={0}`**, and a `role`/`aria-label` if it
+  has no heading, so it can be scrolled from the keyboard and is announced. A `<select>` needs
+  its own accessible name (`.dz-select` gives it the styling; `aria-label` gives it the name).
 
 ## Authoring a module
 

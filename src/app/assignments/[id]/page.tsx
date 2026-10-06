@@ -33,7 +33,7 @@ export default async function StudentAssignmentPage(props: PageProps<'/assignmen
 
   return (
     <div className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/dashboard" className="hover:text-ink">
           dashboard
         </Link>

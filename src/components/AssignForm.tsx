@@ -66,6 +66,7 @@ export function AssignForm({
           value={moduleId}
           onChange={(e) => setModuleId(e.target.value)}
           disabled={!canRotate}
+          aria-label="Module to assign"
         >
           {assignable.map((m) => (
             <option key={m.id} value={m.id}>

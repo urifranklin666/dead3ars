@@ -57,7 +57,7 @@ export default async function AdminPage() {
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Accounts</h2>
-        <div className="dz-card overflow-x-auto">
+        <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Accounts">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left">
@@ -91,7 +91,7 @@ export default async function AdminPage() {
         {classes.length === 0 ? (
           <p className="text-sm text-muted">No classes on this instance yet.</p>
         ) : (
-          <div className="dz-card overflow-x-auto">
+          <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Classes">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-left">
@@ -133,7 +133,7 @@ export default async function AdminPage() {
             Nothing logged yet. Sign-ins, roster changes, submissions and grades all record here.
           </p>
         ) : (
-          <div className="dz-card overflow-x-auto">
+          <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Audit trail">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-line text-left">

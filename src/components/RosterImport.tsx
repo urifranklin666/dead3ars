@@ -89,7 +89,7 @@ export function RosterImport({ classId }: { classId: number }) {
             {result.existing > 0 && ` · ${result.existing} already had an account`}
           </p>
           {result.passwords.length > 0 && (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Generated passwords">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-line text-left">

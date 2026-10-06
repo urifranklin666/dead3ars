@@ -36,7 +36,7 @@ export default async function NotesPage() {
       {withNotes.length === 0 ? (
         <div className="dz-card p-6 text-sm text-muted">
           No notes yet. Open any module and write in the{' '}
-          <Link href="/modules" className="text-accent hover:underline">
+          <Link href="/modules" className="dz-link">
             notes box
           </Link>{' '}
           at the bottom of the page.

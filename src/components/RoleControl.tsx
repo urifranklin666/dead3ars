@@ -41,10 +41,11 @@ export function RoleControl({
   return (
     <span className="flex items-center gap-2">
       <select
-        className="dz-input py-1 text-xs"
+        className="dz-select py-1 text-xs"
         value={role}
         onChange={(e) => change(e.target.value)}
         disabled={busy || self}
+        aria-label={`Role for this account, currently ${role}`}
         title={self ? 'You cannot change your own role.' : undefined}
       >
         <option value="student">student</option>

@@ -52,7 +52,7 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
 
   return (
     <article className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/modules" className="hover:text-ink">
           syllabus
         </Link>
@@ -297,7 +297,7 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
         </>
       )}
 
-      <nav className="flex flex-wrap items-stretch gap-3 border-t border-line pt-6">
+      <nav className="flex flex-wrap items-stretch gap-3 border-t border-line pt-6" aria-label="Module navigation">
         {prev ? (
           <Link href={moduleHref(prev.id)} className="dz-card flex-1 p-4 hover:border-accent">
             <span className="dz-label">← Previous</span>

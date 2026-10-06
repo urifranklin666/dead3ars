@@ -38,7 +38,7 @@ export default async function StudentClassPage(props: PageProps<'/classes/[id]'>
 
   return (
     <div className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/dashboard" className="hover:text-ink">
           dashboard
         </Link>

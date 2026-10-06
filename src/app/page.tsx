@@ -115,7 +115,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="text-xl font-semibold">The curriculum</h2>
-          <Link href="/modules" className="text-sm text-accent hover:underline">
+          <Link href="/modules" className="text-sm dz-link">
             Full syllabus →
           </Link>
         </div>

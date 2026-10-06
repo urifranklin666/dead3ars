@@ -58,6 +58,41 @@ body {
   border-color: transparent;
 }
 
+/* A select needs its own rule instead of reusing .dz-input, whose width:100%
+   would stretch it inside a flex row — but it keeps the same focus ring. */
+.dz-select {
+  appearance: none;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  color: var(--color-ink);
+  font-size: 0.9375rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238ea3ba' stroke-width='1.6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 0.7rem;
+}
+.dz-select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.dz-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* A link inside a sentence must not rely on colour alone to be identifiable
+   (WCAG 1.4.1), so it is underlined at rest. Links that are the only thing in
+   their block — nav items, cards, table cells — do not need this, because their
+   shape already marks them. */
+.dz-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .dz-btn {
   display: inline-flex;
   align-items: center;

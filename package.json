@@ -12,7 +12,8 @@
     "seed": "tsx scripts/seed.ts",
     "init:db": "tsx scripts/init-db.ts",
     "test:smoke": "tsx scripts/smoke.mts",
-    "test:visual": "tsx scripts/visual-check.mts"
+    "test:visual": "tsx scripts/visual-check.mts",
+    "test:a11y": "tsx scripts/a11y-check.mts"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
@@ -28,6 +29,7 @@
     "@types/node": "^26.6.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.14.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",

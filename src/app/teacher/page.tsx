@@ -66,7 +66,7 @@ export default async function TeacherPage() {
             create a demo cohort, or have students enrol.
           </div>
         ) : (
-          <div className="dz-card overflow-x-auto">
+          <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Students">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-line text-left">

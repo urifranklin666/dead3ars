@@ -11,7 +11,7 @@ export function Nav({ user }: { user: SessionUser | null }) {
           dead<span className="text-accent">3ars</span>
         </Link>
 
-        <nav className="flex items-center gap-4 text-sm text-muted">
+        <nav className="flex items-center gap-4 text-sm text-muted" aria-label="Main">
           <Link href="/modules" className="hover:text-ink">
             Syllabus
           </Link>

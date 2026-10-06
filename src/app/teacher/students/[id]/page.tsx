@@ -45,7 +45,7 @@ export default async function StudentDetailPage(props: PageProps<'/teacher/stude
 
   return (
     <div className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/teacher" className="hover:text-ink">
           cohort
         </Link>
@@ -88,7 +88,7 @@ export default async function StudentDetailPage(props: PageProps<'/teacher/stude
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">Progress by module</h2>
-        <div className="dz-card overflow-x-auto">
+        <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Progress by module">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left">

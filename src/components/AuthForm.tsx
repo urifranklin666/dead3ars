@@ -118,14 +118,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
         {isRegister ? (
           <>
             Already enrolled?{' '}
-            <Link href="/login" className="text-accent hover:underline">
+            <Link href="/login" className="dz-link">
               Sign in
             </Link>
           </>
         ) : (
           <>
             No account?{' '}
-            <Link href="/register" className="text-accent hover:underline">
+            <Link href="/register" className="dz-link">
               Enrol
             </Link>
           </>

@@ -50,7 +50,7 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
 
   return (
     <div className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/teacher" className="hover:text-ink">
           cohort
         </Link>
@@ -205,7 +205,7 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
             Nobody has joined yet. Share the join code above.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Gradebook">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-line text-left">

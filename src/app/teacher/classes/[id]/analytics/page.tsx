@@ -38,7 +38,7 @@ export default async function ClassAnalyticsPage(props: PageProps<'/teacher/clas
 
   return (
     <div className="space-y-10">
-      <nav className="font-mono text-xs text-muted">
+      <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
         <Link href="/teacher" className="hover:text-ink">
           cohort
         </Link>
@@ -74,7 +74,7 @@ export default async function ClassAnalyticsPage(props: PageProps<'/teacher/clas
           numbers will appear here.
         </div>
       ) : (
-        <section className="dz-card overflow-x-auto">
+        <section className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Per-module analytics">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line text-left">
