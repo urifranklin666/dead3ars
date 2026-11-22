@@ -113,7 +113,7 @@ function buildCloudInitIso(labDir, labId, moduleId, flags) {
     .join('\n');
 
   const runnerScript = `#!/usr/bin/env bash\nset -euo pipefail\n${envExports}\n/usr/local/sbin/run-scenario.sh\n`;
-  const metaData = `instance-id: ${labId}\nlocal-hostname: dead3ars-${moduleId.slice(0, 12)}\n`;
+  const metaData = `instance-id: ${labId}\nlocal-hostname: dead3ars-${moduleId.slice(0, 12).replace(/-+$/, '')}\n`;
   const userData = `#cloud-config
 write_files:
   - path: /usr/local/sbin/run-scenario.sh

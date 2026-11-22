@@ -123,6 +123,61 @@ export const SCENARIOS: Record<string, ScenarioDef> = {
       { key: 'persist', label: 'Persistence Hunt', hint: 'Find PERSIST_FLAG in /etc/cron.d/capstone-persist' },
     ],
   },
+  'm13-api-auth-jwt-attacks': {
+    moduleId: 'm13-api-auth-jwt-attacks',
+    title: 'Modern API, OAuth, and JWT Security',
+    ramMb: 1536,
+    vcpus: 2,
+    flags: [
+      { key: 'bola', label: 'Broken Object Level Auth', hint: 'Query /api/invoices/1001 with alice JWT to trigger BOLA' },
+      { key: 'mass_assign', label: 'Mass Assignment Escalation', hint: 'POST /api/profile with role=admin, then GET /api/staff/secret' },
+      { key: 'jwt', label: 'JWT alg: none Forgery', hint: 'Forge unsigned JWT with alg:none header against /api/superadmin' },
+    ],
+  },
+  'm14-network-packet-analysis': {
+    moduleId: 'm14-network-packet-analysis',
+    title: 'Network Traffic and Packet Forensics',
+    ramMb: 1280,
+    vcpus: 1,
+    flags: [
+      { key: 'creds', label: 'Cleartext Credential Leak', hint: 'Filter tcpdump on port 21 or 80 to find FLAG_CREDS' },
+      { key: 'http_exfil', label: 'HTTP Exfiltration', hint: 'Inspect HTTP POST body in the capture' },
+      { key: 'dns_tunnel', label: 'DNS Tunnel Query', hint: 'Decode long subdomain label from DNS traffic on port 53' },
+    ],
+  },
+  'm15-container-cloud-security': {
+    moduleId: 'm15-container-cloud-security',
+    title: 'Containers, CI/CD, and Cloud Identity',
+    ramMb: 1280,
+    vcpus: 1,
+    flags: [
+      { key: 'ci_secret', label: 'Leaked CI/CD Secret', hint: 'Audit /opt/ci-runner/build.log for unmasked deployment secret' },
+      { key: 'metadata', label: 'IMDSv1 Metadata Theft', hint: 'Query http://127.0.0.1:8080/latest/meta-data/iam/security-credentials/' },
+      { key: 'escape', label: 'Container Host Escape', hint: 'Inspect /opt/deploy/docker-compose.yml for privileged + socket mount' },
+    ],
+  },
+  'm16-binary-malware-triage': {
+    moduleId: 'm16-binary-malware-triage',
+    title: 'Static and Dynamic Binary Triage',
+    ramMb: 1024,
+    vcpus: 1,
+    flags: [
+      { key: 'strings', label: 'Embedded Strings IOC', hint: 'strings /opt/samples/dropper | grep -i flag' },
+      { key: 'killswitch', label: 'Kill-Switch Path', hint: 'strace /opt/samples/dropper to find /tmp/.killswitch_XXXXX' },
+      { key: 'runtime', label: 'Runtime Artifact', hint: 'Base64-decode /tmp/.malware_runtime' },
+    ],
+  },
+  'm17-ransomware-incident-response': {
+    moduleId: 'm17-ransomware-incident-response',
+    title: 'Ransomware Incident Response and Recovery',
+    ramMb: 1536,
+    vcpus: 2,
+    flags: [
+      { key: 'contain', label: 'Contain Rogue Encryptor', hint: 'Inspect /etc/systemd/system/mock-ransom.service' },
+      { key: 'root_cause', label: 'Root Cause Analysis', hint: 'Read /var/log/ir-timeline.log for initial access vector' },
+      { key: 'recover', label: 'Verified Backup Recovery', hint: 'sha256sum -c /var/backups/immutable/manifest.sha256' },
+    ],
+  },
 };
 
 export function getScenario(moduleId: string): ScenarioDef | undefined {
