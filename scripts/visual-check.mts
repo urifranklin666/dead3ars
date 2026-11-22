@@ -207,7 +207,7 @@ try {
 
   const home = await probe('/');
   check('a stylesheet is loaded', home.styleSheetCount > 0, `${home.styleSheetCount} sheet(s)`);
-  check('the theme token resolves', home.accentToken === '#35d0e8', home.accentToken || '(empty)');
+  check('the theme token resolves', home.accentToken === '#ff3b4e', home.accentToken || '(empty)');
   check('body has a real background, not transparent', home.bodyBg !== TRANSPARENT, home.bodyBg);
   check('body text is not transparent', home.bodyColor !== TRANSPARENT, home.bodyColor);
   check('the h1 is rendered at heading size', home.h1.display !== 'none' && home.h1.fontSize >= 30, `${home.h1.display} / ${home.h1.fontSize}px`);
@@ -215,7 +215,7 @@ try {
   check('the primary button is visible', home.primaryButton !== null && home.primaryButton.display !== 'none');
   check(
     'the primary button is filled with accent',
-    home.primaryButton?.bg === 'rgb(53, 208, 232)',
+    home.primaryButton?.bg === 'rgb(255, 59, 78)',
     home.primaryButton?.bg ?? 'none',
   );
   check('a card is rendered with a border', home.card !== null && home.card.display !== 'none', home.card?.border ?? 'none');

@@ -11,7 +11,7 @@ import {
 import { audit, clientIp } from '@/lib/audit';
 
 /* A student's own work on one assignment: read it back, or submit/resubmit.
- * Reachable only through enrolment in the assignment's class, so a student
+ * Reachable only through enrollment in the assignment's class, so a student
  * cannot submit to — or read — an assignment set for another class. */
 
 const Body = z.object({

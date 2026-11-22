@@ -1,5 +1,5 @@
 import { requireTeacher } from '@/lib/auth';
-import { authError, ok } from '@/lib/api';
+import { authError, fail, ok } from '@/lib/api';
 import { cohort, attemptsFor } from '@/lib/progress';
 import { curriculumStats } from '@/lib/curriculum';
 
@@ -16,6 +16,6 @@ export async function GET(req: Request) {
 
     return ok({ cohort: cohort(), stats: curriculumStats() });
   } catch (e) {
-    return authError(e) ?? ok({ error: 'could not load the cohort' }, 500);
+    return authError(e) ?? fail('could not load the cohort', 500);
   }
 }

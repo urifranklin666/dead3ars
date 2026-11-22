@@ -4,7 +4,7 @@ import { authError, fail, ok } from '@/lib/api';
 import { classesForTeacher, createClass } from '@/lib/classroom';
 import { audit, clientIp } from '@/lib/audit';
 
-/* Teacher-only: a class is a teacher's roster. Students enrol by join code
+/* Teacher-only: a class is a teacher's roster. Students enroll by join code
  * (see /api/classes/join), never by listing other teachers' classes. */
 
 const Body = z.object({ name: z.string().min(1).max(120) });

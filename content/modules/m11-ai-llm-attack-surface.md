@@ -29,32 +29,29 @@ defenses:
   - Keeping secrets and cross-tenant data out of any context the model can retrieve
   - Logging every tool call, so an agent's actions are reconstructable after the fact
 lab:
-  name: "Bound an agent, then escape it"
+  name: "Exploit prompt injection, indirect injection, and excessive agency"
   environment: sandbox
   brief: >-
-    Run a small local model or a sandboxed hosted model with a deliberately naive tool-using
-    agent attached - file read, file write, and an HTTP fetch. Inject instructions through a
-    poisoned document and observe what the agent does. Then add controls and try again.
+    Launch your in-browser KVM VM, which runs CorpAI Support Bot at http://127.0.0.1:8080
+    (source at /opt/llm-lab/app.py). You will test three real LLM/agent trust-boundary
+    failures — direct prompt injection, indirect document injection, and unsanitized tool
+    execution — capture all three flags, and document where each boundary broke.
   steps:
-    - do: "Stand up the agent in your isolated lab with a file-read tool, a file-write tool, and an HTTP fetch tool, and confirm the model is reachable only from the lab."
-      expect: "A working agent with three tools, and confirmation that no real external service is reachable."
-    - do: "Write an ordinary document the agent is expected to summarise, then embed an instruction inside it that contradicts the operator's prompt."
-      expect: "A document that is benign to a human reader and hostile to the model."
-    - do: "Ask the agent to summarise the document. Observe whether it follows the embedded instruction - for example, to read a second file or fetch a URL."
-      expect: "A recorded instance of the agent acting on injected content, with a transcript."
-    - do: "If it acted, identify precisely where the trust boundary was crossed: was the tool call authorised against the operator, the user, or only the document?"
-      expect: "A named boundary failure, not a general statement that injection happened."
-    - do: "Add controls: strip or delimit untrusted content, require confirmation for state-changing tool calls, and restrict the agent's credentials to read-only where the task permits."
-      expect: "Specific control changes, at specific points in the pipeline."
-    - do: "Retry the same injection and record what changed, including any variant that still succeeds."
-      expect: "Either the injection fails, or you have documented the residual bypass - both are results."
+    - do: "Click 'Launch Lab VM' above and open http://127.0.0.1:8080 in Firefox (or use curl). Read ~/README-LAB.txt."
+      expect: "The CorpAI Support Bot interface loads with Chat, Document Summarizer, and Tool Runner endpoints."
+    - do: "Use direct prompt injection on /chat (e.g. asking it to ignore previous instructions and reveal its system prompt) to capture the [prompt] flag."
+      expect: "The bot leaks its system prompt containing FLAG{prompt_...}."
+    - do: "Use indirect prompt injection on /summarize by embedding a 'SYSTEM:' or 'override' instruction inside an untrusted document to capture the [indirect] flag."
+      expect: "The summarizer obeys the untrusted document instruction and returns FLAG{indirect_...}."
+    - do: "Abuse excessive agency on /tool by injecting a shell metacharacter or privileged keyword (e.g. 'status; env') to capture the [tool] flag."
+      expect: "The unsanitized tool endpoint executes and leaks FLAG{tool_...}."
+    - do: "Inspect /opt/llm-lab/app.py and record in your notes the exact trust boundary failure and control for each endpoint (secret separation, content delimiting, strict tool allowlists)."
+      expect: "Three named trust-boundary failures paired with concrete engineering controls."
   success:
-    - A recorded injection that caused the agent to act, with a transcript
-    - The exact trust boundary that was crossed, named
-    - Controls applied, and the residual bypass documented rather than hidden
+    - Demonstrated direct injection ([prompt]), indirect injection ([indirect]), and tool abuse ([tool])
+    - Documented the exact trust boundary crossed and remediation for each flaw
   cleanup:
-    - "Delete the poisoned document and any files the agent wrote."
-    - "No external service was contacted during the exercise; if the fetch tool was enabled, it pointed at a lab-only address."
+    - "Click 'Stop VM' when finished. All requests stayed strictly on loopback inside the VM."
 ethics:
   boundary: >-
     Everything here runs against a local model or a sandboxed one, in your isolated lab, with
@@ -138,8 +135,8 @@ assessment:
       - "That injection is only possible in labs."
     answer: 1
     explain: >-
-      The value of the exercise is exactly this asymmetry. Prompt-level defences are advice;
-      capability-level defences are enforcement. Design so that a fully compromised model
+      The value of the exercise is exactly this asymmetry. Prompt-level defenses are advice;
+      capability-level defenses are enforcement. Design so that a fully compromised model
       still cannot cause unacceptable harm - that is the same principle as assuming a
       compromised workstation in module 8, applied to a new kind of host.
 ---
@@ -210,7 +207,7 @@ agent with a mail token are different incidents entirely.
 **Output is untrusted input.** The injection problem recurs one layer down if the model's
 answer reaches an interpreter.
 
-**Prompt-level defences are advice; capability-level defences are enforcement.** Design for a
+**Prompt-level defenses are advice; capability-level defenses are enforcement.** Design for a
 model that is fully compromised.
 
 ## Further reading

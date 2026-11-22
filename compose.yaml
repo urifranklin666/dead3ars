@@ -1,0 +1,30 @@
+services:
+  dead3ars:
+    build: .
+    image: dead3ars:latest
+    container_name: dead3ars
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8840:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DZ_ADMIN_EMAIL: ${DZ_ADMIN_EMAIL}
+      DZ_ADMIN_PASSWORD: ${DZ_ADMIN_PASSWORD}
+      DZ_DB: /data/dead3ars.db
+      DZ_DEMO: "0"
+      DZ_LABD_URL: http://host.docker.internal:8845
+      DZ_LABD_SECRET: ${DZ_LABD_SECRET}
+      DZ_INVITE_ONLY: ${DZ_INVITE_ONLY:-0}
+      DZ_INVITE_CODE: ${DZ_INVITE_CODE:-}
+      HOSTNAME: "0.0.0.0"
+    volumes:
+      - dead3ars-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+volumes:
+  dead3ars-data:

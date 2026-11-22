@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { requireTeacher } from '@/lib/auth';
 import { authError, fail, ok } from '@/lib/api';
 import { deleteAnnouncement, listAnnouncements, ownedClass, postAnnouncement } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* Announcements belong to a class and only its owning teacher posts them. */
 
@@ -29,6 +30,15 @@ export async function POST(req: Request, ctx: RouteContext<'/api/classes/[id]/an
     const parsed = Body.safeParse(await req.json().catch(() => null));
     if (!parsed.success) return fail('An announcement needs a body.');
     const announcement = postAnnouncement(classId, teacher.id, parsed.data.title, parsed.data.body);
+    audit({
+      actorId: teacher.id,
+      actorEmail: teacher.email,
+      action: 'announcement.post',
+      targetType: 'class',
+      targetId: classId,
+      detail: announcement.title || announcement.body.slice(0, 60),
+      ip: clientIp(req),
+    });
     return ok({ announcement }, 201);
   } catch (e) {
     return authError(e) ?? fail('could not post the announcement', 500);
@@ -46,6 +56,15 @@ export async function DELETE(req: Request, ctx: RouteContext<'/api/classes/[id]/
     if (!Number.isInteger(annId) || !deleteAnnouncement(teacher.id, annId)) {
       return fail('No such announcement.', 404);
     }
+    audit({
+      actorId: teacher.id,
+      actorEmail: teacher.email,
+      action: 'announcement.delete',
+      targetType: 'class',
+      targetId: classId,
+      detail: String(annId),
+      ip: clientIp(req),
+    });
     return ok({ removed: annId });
   } catch (e) {
     return authError(e) ?? fail('could not remove the announcement', 500);

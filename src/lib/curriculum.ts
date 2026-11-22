@@ -70,7 +70,7 @@ export interface CourseModule extends ModuleMeta {
 const CONTENT_DIR = process.env.DZ_CONTENT ?? resolve(process.cwd(), 'content', 'modules');
 
 /* The first modules are readable without an account — the syllabus should be
- * visible to someone deciding whether to enrol. Everything after the limit
+ * visible to someone deciding whether to enroll. Everything after the limit
  * requires a signed-in user. */
 export const FREE_MODULE_LIMIT = 3;
 

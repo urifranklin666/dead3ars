@@ -90,7 +90,7 @@ export default async function AssignmentGradingPage(props: PageProps<'/teacher/a
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Submissions</h2>
+        <h2 className="dz-section-title">Submissions</h2>
         {work.length === 0 ? (
           <div className="dz-card p-6 text-sm text-muted">Nobody has joined this class yet.</div>
         ) : (

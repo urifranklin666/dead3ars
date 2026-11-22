@@ -31,31 +31,29 @@ defenses:
   - Logging and alerting on scans of internet-facing ranges, so probing becomes a visible event
   - Credential rotation wherever public breach data shows an exposure
 lab:
-  name: "Map your own range, then map yourself"
+  name: "Enumerate a simulated corporate target in your isolated range"
   environment: sandbox
   brief: >-
-    Two halves. First, actively enumerate your isolated lab VM: find live hosts, open
-    ports, and running services. Second, do passive-only collection on your own public
-    footprint. The contrast between the two is the lesson.
+    Launch your in-browser KVM VM, which runs an isolated corporate web portal for
+    Northstar Logistics at http://127.0.0.1:8080. You will enumerate public web metadata,
+    discover hidden paths from robots.txt and page source, and extract leaked DNS zone
+    records — then reflect on what should never be exposed publicly.
   steps:
-    - do: "Bring up two lab VMs on your host-only network and note their addresses."
-      expect: "Two hosts with addresses you recorded before scanning, not discovered by scanning."
-    - do: "Run a host-discovery sweep of your lab subnet and compare the result to the addresses you expected."
-      expect: "The sweep finds your known hosts and nothing unexpected. Any surprise is a finding about your own lab."
-    - do: "Scan one lab VM for open ports, then identify the service behind each open port."
-      expect: "A port list, and for each port a guess at the service and its version."
-    - do: "From a machine that is NOT in the lab, attempt the same scan against one of your lab hosts."
-      expect: "It fails - your isolation holds. Record the failure as evidence your lab is correct."
-    - do: "Passively collect what is publicly knowable about your own name and domain: certificate transparency logs, DNS records, and public breach-notification services. Do not send scan traffic to anything you do not own."
-      expect: "A list of what an outsider could learn without touching your systems."
-    - do: "For each item on that passive list, write whether it is intended to be public, and one change that would reduce the unintended ones."
-      expect: "At least one concrete reduction, such as DNS hygiene or certificate naming."
+    - do: "Click 'Launch Lab VM' above and read ~/README-LAB.txt. Open http://127.0.0.1:8080 in Firefox or inspect it with 'curl -s http://127.0.0.1:8080'."
+      expect: "The Northstar Logistics portal loads locally and its HTML source contains a developer comment hinting at a backup path."
+    - do: "Fetch /robots.txt ('curl -s http://127.0.0.1:8080/robots.txt') to identify disallowed directories and capture the [robots] flag."
+      expect: "You discover /backup/ and your unique FLAG{robots_...} comment."
+    - do: "Fetch /.well-known/security.txt to inspect disclosure metadata and capture the [meta] flag."
+      expect: "You retrieve the security contact policy and your unique FLAG{meta_...}."
+    - do: "Retrieve /backup/dns-zone.txt discovered during enumeration and extract the _audit TXT record for the [dns] flag."
+      expect: "You capture FLAG{dns_...} and submit all three flags in the panel above."
+    - do: "In your module notes, list which of these disclosures were intentional (security.txt) versus accidental (HTML comment, backup zone file) and one control to prevent each leak."
+      expect: "A clear separation between intended public metadata and unintended exposure."
   success:
-    - An inventory of your lab hosts and their services, produced by your own enumeration
-    - Proof that a machine outside the lab cannot reach inside it
-    - A passive exposure list of your own footprint with at least one remediation
+    - Captured all three recon flags ([robots], [meta], [dns]) from the local target
+    - Documented at least one concrete control to eliminate the unintended exposures
   cleanup:
-    - "No changes to external systems were made. Power off the lab VMs when finished; keep snapshots for the next module."
+    - "Click 'Stop VM' when finished. No external systems were touched; all traffic stayed on loopback inside the VM."
 ethics:
   boundary: >-
     The rule for this module is simple and absolute: active scanning and enumeration happen

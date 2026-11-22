@@ -16,6 +16,9 @@
     "test:a11y": "tsx scripts/a11y-check.mts"
   },
   "dependencies": {
+    "@novnc/novnc": "^1.7.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
     "gray-matter": "^4.0.3",
     "next": "16.3.8",
     "react": "19.2.8",

@@ -157,6 +157,31 @@ CREATE TABLE IF NOT EXISTS login_attempts (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+/* Live KVM cyber-range lab instances and telemetry events. */
+CREATE TABLE IF NOT EXISTS lab_instances (
+  id               TEXT PRIMARY KEY,
+  user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  module_id        TEXT NOT NULL,
+  status           TEXT NOT NULL CHECK (status IN ('starting','running','stopped','error')),
+  flags_json       TEXT NOT NULL DEFAULT '{}',
+  captured_json    TEXT NOT NULL DEFAULT '[]',
+  started_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  last_activity_at TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at       TEXT NOT NULL,
+  stopped_at       TEXT,
+  stop_reason      TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS lab_events (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  lab_id     TEXT NOT NULL,
+  user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  module_id  TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  detail     TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON quiz_attempts(user_id, module_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_student ON enrollments(student_id);
@@ -170,6 +195,8 @@ CREATE INDEX IF NOT EXISTS idx_discussions_class ON discussions(class_id, create
 CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor_id);
 CREATE INDEX IF NOT EXISTS idx_login_attempts ON login_attempts(kind, key, created_at);
+CREATE INDEX IF NOT EXISTS idx_lab_instances_user ON lab_instances(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_lab_events_created ON lab_events(created_at);
 `;
 
 const g = globalThis as unknown as { __dzDb?: DatabaseSync };

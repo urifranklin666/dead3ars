@@ -10,10 +10,12 @@ export function ClassCodePanel({
   classId,
   code,
   redirectAfterDelete,
+  readOnly = false,
 }: {
   classId: number;
   code: string;
   redirectAfterDelete?: string | null;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -71,22 +73,27 @@ export function ClassCodePanel({
           <button type="button" className="dz-btn text-sm" onClick={copy} disabled={busy}>
             {copied ? '✓ Copied' : 'Copy'}
           </button>
-          <button type="button" className="dz-btn text-sm" onClick={rotate} disabled={busy}>
-            Rotate
-          </button>
-          <button
-            type="button"
-            className="dz-btn text-sm border-danger/50 text-danger hover:border-danger"
-            onClick={remove}
-            disabled={busy}
-          >
-            Delete class
-          </button>
+          {!readOnly && (
+            <>
+              <button type="button" className="dz-btn text-sm" onClick={rotate} disabled={busy}>
+                Rotate
+              </button>
+              <button
+                type="button"
+                className="dz-btn dz-btn-danger text-sm"
+                onClick={remove}
+                disabled={busy}
+              >
+                Delete class
+              </button>
+            </>
+          )}
         </div>
       </div>
       <p className="mt-3 text-xs text-muted">
-        Students enter this code on their dashboard to enrol. Rotating it locks out anyone
-        who has the old one but leaves current members enrolled.
+        {readOnly
+          ? 'Admin view. The owning teacher manages this class.'
+          : 'Students enter this code on their dashboard to enroll. Rotating it locks out anyone who has the old one but leaves current members enrolled.'}
       </p>
       {error && (
         <p className="mt-3 rounded-md border border-danger/50 bg-danger/10 px-3 py-2 text-sm text-danger">

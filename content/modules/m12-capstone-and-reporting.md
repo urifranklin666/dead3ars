@@ -30,38 +30,30 @@ defenses:
   - A detection matrix that names the steps your own defenses missed, rather than claiming coverage
   - Verified cleanup with a written inventory of every persistence mechanism removed
 lab:
-  name: "End-to-end engagement against your own range"
+  name: "Full-chain capstone engagement and executive reporting"
   environment: sandbox
   brief: >-
-    A complete engagement on your own isolated range: at least one workstation and one
-    service host. You write the authorization document yourself, execute the chain, collect
-    the telemetry your own defenses produce, and deliver both reports. Nothing leaves the lab.
+    Launch your in-browser KVM capstone VM, which chains web enumeration, Linux privilege
+    escalation, and persistence hunting on a single isolated target (http://127.0.0.1:8080
+    plus local host). You will draft your scope brief first, execute the full chain to
+    capture all three flags, and write both a technical finding and a one-page executive
+    summary in your notes/submission.
   steps:
-    - do: "Write the engagement brief before touching anything: assets in scope, out of scope, the techniques permitted, the stop condition, who to contact if something goes wrong, and the date range."
-      expect: "A one-page authorization document, signed by you as both tester and owner. If it feels like paperwork, notice that this is exactly the document whose absence makes every other module illegal."
-    - do: "Build the range: at least two lab VMs, one with a deliberately vulnerable service and one workstation, with logging enabled and the network isolated."
-      expect: "Isolation you have verified from outside the range, and logging you have confirmed produces events."
-    - do: "Perform passive reconnaissance on your own public footprint, then active enumeration of the lab range."
-      expect: "An asset and service inventory, with the passive and active findings kept separate."
-    - do: "Gain initial access, escalate privilege, and establish persistence - each recorded as you go, with the evidence attached at the moment you collect it."
-      expect: "A technique log with timestamps and evidence, not a reconstruction written afterwards."
-    - do: "Check your own detections. For each step, would your module 9 rules have fired? Record which steps produced nothing."
-      expect: "A detection matrix: technique by technique, caught or not caught, with the blind spots named."
-    - do: "Clean up completely: remove every persistence mechanism, restore the snapshots, and verify the range is back to its original state."
-      expect: "A verified clean state, and a written inventory of what was removed."
-    - do: "Write the technical report: findings by severity, each with evidence, the affected asset, the technique ID, and a specific remediation."
-      expect: "Findings a competent engineer could act on without asking you a question."
-    - do: "Write the executive summary, one page maximum: what the exercise showed, what the business risk is in plain language, and the three things to do first."
-      expect: "No CVE numbers, no tool names - a document a director can read in five minutes and act on."
+    - do: "Before launching the VM, write a brief authorization scope in your module notes (target: isolated dead3ars capstone VM, permitted techniques, stop condition)."
+      expect: "A concise scope statement confirming you only test authorized lab assets."
+    - do: "Click 'Launch Lab VM' above, read ~/README-LAB.txt, and enumerate http://127.0.0.1:8080 (inspect HTML source for the hidden debug endpoint /api/config) to capture the [web] flag."
+      expect: "You discover /api/config, capture FLAG{web_...}, and note the ops_script path (/opt/capstone/deploy.sh)."
+    - do: "Check 'sudo -l', abuse the writable /opt/capstone/deploy.sh script to escalate to root, and read /root/capstone-root.flag for the [root] flag."
+      expect: "You elevate to root and capture FLAG{root_...}."
+    - do: "Switch to defender mode: inspect /etc/cron.d/capstone-persist to uncover the simulated attacker persistence artifact and capture the [persist] flag."
+      expect: "You capture FLAG{persist_...} and submit all three capstone flags above."
+    - do: "Write your capstone wrap-up (in Notes or your class Assignment submission): a technical findings list with ATT&CK IDs + remediations, plus a plain-language executive summary with top three priorities."
+      expect: "Both technical and executive deliverables backed by evidence from your run."
   success:
-    - A written authorization document produced before any testing began
-    - A complete technique chain executed with evidence collected at the time
-    - A detection matrix naming the steps your own defenses missed
-    - A verified clean-up with an inventory of what was removed
-    - Two reports, one technical and one executive, written for their own readers
+    - Completed the full chain across web foothold ([web]), root privesc ([root]), and persistence hunt ([persist])
+    - Produced both technical remediation findings and a plain-language executive summary
   cleanup:
-    - "Remove every persistence mechanism and any account or file you created; restore snapshots; verify."
-    - "Confirm no lab VM can reach the internet or your real LAN, and leave it that way."
+    - "Click 'Reset VM' or 'Stop VM' when finished to destroy the ephemeral overlay."
 ethics:
   boundary: >-
     The capstone is the point at which the whole course's rule is tested: everything is done

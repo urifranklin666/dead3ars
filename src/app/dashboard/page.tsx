@@ -4,10 +4,10 @@ import { redirect } from 'next/navigation';
 import { ModuleList } from '@/components/ModuleList';
 import { JoinClassForm } from '@/components/JoinClassForm';
 import { loadModules } from '@/lib/curriculum';
-import { attemptsFor, bestAttempt, progressMap, type Status } from '@/lib/progress';
+import { bestAttempt, getNote, progressMap, type Status } from '@/lib/progress';
 import { classesForStudent, workForStudent } from '@/lib/classroom';
-import { moduleHref } from '@/lib/routes';
-import { isStaff, viewer } from '@/lib/session';
+import { assignmentHref, moduleHref, studentClassHref } from '@/lib/routes';
+import { viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
 
 export const metadata: Metadata = { title: 'Dashboard — dead3ars' };
@@ -15,11 +15,11 @@ export const metadata: Metadata = { title: 'Dashboard — dead3ars' };
 export default async function DashboardPage() {
   const user = await viewer();
   if (!user) redirect('/login');
-  if (isStaff(user)) redirect('/teacher');
+  if (user.role === 'admin') redirect('/admin');
+  if (user.role === 'teacher') redirect('/teacher');
 
   const modules = loadModules();
   const progress = progressMap(user.id);
-  const attempts = attemptsFor(user.id);
 
   const byStatus = (s: Status) => modules.filter((m) => progress[m.id] === s).length;
   const complete = byStatus('assessment-passed');
@@ -39,7 +39,9 @@ export default async function DashboardPage() {
   /* The next thing to do: the first module not yet passed. */
   const nextUp = modules.find((m) => progress[m.id] !== 'assessment-passed');
 
-  const notes = modules.filter((m) => progress[m.id] || attempts.some((a) => a.module_id === m.id));
+  const notes = modules
+    .map((m) => ({ mod: m, body: getNote(user.id, m.id) }))
+    .filter((n) => n.body.trim().length > 0);
 
   /* Work a teacher set, and the classes this student belongs to. */
   const assigned = workForStudent(user.id);
@@ -51,10 +53,18 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-2">
-          <p className="dz-label">Student</p>
-          <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
-          <p className="text-sm text-muted">{user.email}</p>
+        <div className="flex items-center gap-4">
+          <span
+            aria-hidden
+            className="grid h-14 w-14 place-items-center rounded-2xl border border-accent/30 bg-accent/10 font-mono text-xl font-bold text-accent shadow-[0_0_30px_-10px_#ff3b4e]"
+          >
+            {user.name.slice(0, 1).toUpperCase()}
+          </span>
+          <div className="space-y-1">
+            <p className="dz-label">Student console</p>
+            <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
+            <p className="text-sm text-muted">{user.email}</p>
+          </div>
         </div>
         <div className="flex gap-3">
           <Link href="/notes" className="dz-btn">
@@ -73,14 +83,33 @@ export default async function DashboardPage() {
         <Stat n={average === null ? '—' : `${average}%`} label="average quiz score" />
       </section>
 
+      <section className="dz-card p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <span className="dz-label">Course progress</span>
+          <span className="font-mono text-sm font-semibold text-accent">{pct}%</span>
+        </div>
+        <div className="mt-3 dz-progress" role="img" aria-label={`${pct}% of the course complete`}>
+          <span style={{ width: `${pct}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-muted">
+          {complete} passed · {byStatus('lab-complete')} labs awaiting assessment ·{' '}
+          {Math.max(0, modules.length - complete)} remaining
+        </p>
+      </section>
+
       {nextUp && (
-        <section className="dz-card border-accent/40 p-5">
-          <p className="dz-label text-accent">Next up</p>
-          <p className="mt-2 text-lg font-semibold">
-            {String(nextUp.order).padStart(2, '0')} · {nextUp.title}
-          </p>
-          <p className="mt-1 text-sm text-muted">{nextUp.summary}</p>
-          <Link href={moduleHref(nextUp.id)} className="dz-btn dz-btn-primary mt-4">
+        <section className="dz-card dz-card-accent space-y-4 p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="dz-label text-accent">Next up</p>
+              <p className="mt-2 text-lg font-semibold tracking-tight">
+                {String(nextUp.order).padStart(2, '0')} · {nextUp.title}
+              </p>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted">{nextUp.summary}</p>
+            </div>
+            <span className="dz-badge dz-badge-neutral">{nextUp.minutes} min</span>
+          </div>
+          <Link href={moduleHref(nextUp.id)} className="dz-btn dz-btn-primary">
             Continue
           </Link>
         </section>
@@ -89,7 +118,7 @@ export default async function DashboardPage() {
       {assigned.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-xl font-semibold">Assigned to you</h2>
+            <h2 className="dz-section-title">Assigned to you</h2>
             <span className="dz-label">
               {assigned.length} from your classes
               {ungraded > 0 && ` · ${ungraded} awaiting a mark`}
@@ -112,8 +141,8 @@ export default async function DashboardPage() {
               return (
                 <Link
                   key={a.assignment_id}
-                  href={`/assignments/${a.assignment_id}` as never}
-                  className="dz-card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-accent"
+                  href={assignmentHref(a.assignment_id)}
+                  className="dz-card dz-card-hover flex flex-wrap items-center justify-between gap-3 p-4"
                 >
                   <div>
                     <span className="font-medium">
@@ -139,13 +168,17 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      <section className="dz-card space-y-3 p-5">
+      <section className="dz-card space-y-4 p-5">
         {myClasses.length > 0 ? (
           <>
             <div className="flex flex-wrap items-center gap-2">
               <span className="dz-label">Your classes</span>
               {myClasses.map((c) => (
-                <Link key={c.id} href={`/classes/${c.id}` as never} className="dz-badge dz-badge-neutral hover:text-accent">
+                <Link
+                  key={c.id}
+                  href={studentClassHref(c.id)}
+                  className="dz-badge dz-badge-neutral hover:text-accent"
+                >
                   {c.name}
                 </Link>
               ))}
@@ -163,7 +196,7 @@ export default async function DashboardPage() {
 
       <section className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-semibold">Your syllabus</h2>
+          <h2 className="dz-section-title">Your syllabus</h2>
           <span className="dz-label">{modules.filter((m) => progress[m.id]).length} started</span>
         </div>
         <ModuleList modules={modules} progress={progress} authed />
@@ -171,7 +204,7 @@ export default async function DashboardPage() {
 
       {graded.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-xl font-semibold">Assessment history</h2>
+          <h2 className="dz-section-title">Assessment history</h2>
           <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Assessment history">
             <table className="w-full text-sm">
               <thead>
@@ -208,16 +241,33 @@ export default async function DashboardPage() {
       )}
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Study notes</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="dz-section-title">Study notes</h2>
+          <Link href="/notes" className="dz-link text-sm">
+            All notes →
+          </Link>
+        </div>
         {notes.length === 0 ? (
-          <p className="text-sm text-muted">
+          <div className="dz-empty">
             Notes you write against a module appear here. They are private to you.
-          </p>
+          </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {notes.map((m) => (
-              <Link key={m.id} href={moduleHref(m.id)} className="dz-btn text-sm">
-                {String(m.order).padStart(2, '0')} · {m.title}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {notes.map(({ mod, body }) => (
+              <Link
+                key={mod.id}
+                href={moduleHref(mod.id)}
+                className="dz-card dz-card-hover block p-4"
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="font-medium">
+                    {String(mod.order).padStart(2, '0')} · {mod.title}
+                  </span>
+                  <span className="font-mono text-[11px] text-muted">{mod.minutes} min</span>
+                </span>
+                <span className="mt-2 line-clamp-3 block whitespace-pre-wrap text-sm leading-relaxed text-muted">
+                  {body}
+                </span>
               </Link>
             ))}
           </div>

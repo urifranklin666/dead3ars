@@ -10,7 +10,7 @@ export function SignOutButton() {
   return (
     <button
       type="button"
-      className="dz-btn"
+      className="dz-btn text-sm"
       disabled={busy}
       onClick={async () => {
         setBusy(true);

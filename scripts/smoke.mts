@@ -380,7 +380,7 @@ const setRubric = await call(`/api/assignments/${assignmentId}`, {
   body: {
     rubric: [
       { name: 'Findings', description: 'Correct and reproducible', points: 60 },
-      { name: 'Defence', description: 'Names the control', points: 40 },
+      { name: 'Defense', description: 'Names the control', points: 40 },
     ],
   },
 });
@@ -530,7 +530,7 @@ check(
 
 /* ---------- class discussion ---------- */
 
-/* Enrol a second student (ada) so the ownership rules can be exercised. */
+/* Enroll a second student (ada) so the ownership rules can be exercised. */
 await call('/api/classes/join', { method: 'POST', cookie: ada.cookie ?? undefined, body: { code: joinCode } });
 
 const thread = await call(`/api/classes/${klassId}/discussion`, {

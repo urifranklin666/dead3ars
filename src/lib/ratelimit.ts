@@ -105,9 +105,11 @@ export function noteLoginFailure(input: { email: string; ip: string }): void {
     handle.prepare('INSERT INTO login_attempts (kind, key) VALUES (?, ?)').run('account', normalizeEmail(input.email));
     const ip = input.ip.trim();
     if (ip) handle.prepare('INSERT INTO login_attempts (kind, key) VALUES (?, ?)').run('ip', ip);
-    /* Opportunistic pruning: keeps a little more than one window so the count
-     * above is never truncated by the cleanup itself, and bounds the table. */
-    handle.prepare("DELETE FROM login_attempts WHERE created_at < datetime('now', '-1 hour')").run();
+    /* Opportunistic pruning: keep at least one full window, even when the window
+     * is configured longer than an hour. */
+    handle
+      .prepare("DELETE FROM login_attempts WHERE created_at < datetime('now', ?)")
+      .run(`-${Math.max(3600, WINDOW_SECONDS * 2)} seconds`);
   } catch {
     /* Never let throttling break sign-in. */
   }

@@ -72,22 +72,33 @@ export default async function StudentDetailPage(props: PageProps<'/teacher/stude
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Enrolled classes</h2>
+        <h2 className="dz-section-title">Enrolled classes</h2>
         {classes.length === 0 ? (
           <p className="text-sm text-muted">This student has not joined a class.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {classes.map((c) => (
-              <Link key={c.id} href={classHref(c.id)} className="dz-btn text-sm">
-                {c.name}
-              </Link>
-            ))}
+            {classes.map((c) => {
+              const canOpen = user.role === 'admin' || c.teacher_id === user.id;
+              return canOpen ? (
+                <Link key={c.id} href={classHref(c.id)} className="dz-btn text-sm">
+                  {c.name}
+                </Link>
+              ) : (
+                <span
+                  key={c.id}
+                  className="dz-badge dz-badge-neutral px-3 py-2 text-xs"
+                  title={`Managed by ${c.teacher_name}`}
+                >
+                  {c.name}
+                </span>
+              );
+            })}
           </div>
         )}
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Progress by module</h2>
+        <h2 className="dz-section-title">Progress by module</h2>
         <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Progress by module">
           <table className="w-full text-sm">
             <thead>
@@ -139,7 +150,7 @@ export default async function StudentDetailPage(props: PageProps<'/teacher/stude
 
       {attempts.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-xl font-semibold">Assessment history</h2>
+          <h2 className="dz-section-title">Assessment history</h2>
           <div className="dz-card overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

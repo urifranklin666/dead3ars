@@ -11,6 +11,7 @@ import {
   workForStudent,
 } from '@/lib/classroom';
 import { loadModules } from '@/lib/curriculum';
+import { assignmentHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 
 export const metadata: Metadata = { title: 'Class — dead3ars' };
@@ -52,7 +53,7 @@ export default async function StudentClassPage(props: PageProps<'/classes/[id]'>
       </header>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Assigned work</h2>
+        <h2 className="dz-section-title">Assigned work</h2>
         {assigned.length === 0 ? (
           <p className="text-sm text-muted">Nothing assigned yet.</p>
         ) : (
@@ -64,8 +65,8 @@ export default async function StudentClassPage(props: PageProps<'/classes/[id]'>
               return (
                 <Link
                   key={a.id}
-                  href={`/assignments/${a.id}` as never}
-                  className="dz-card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-accent"
+                  href={assignmentHref(a.id)}
+                  className="dz-card dz-card-hover flex flex-wrap items-center justify-between gap-3 p-4"
                 >
                   <span>
                     <span className="block font-medium">
@@ -101,7 +102,7 @@ export default async function StudentClassPage(props: PageProps<'/classes/[id]'>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Announcements</h2>
+        <h2 className="dz-section-title">Announcements</h2>
         {announcements.length === 0 ? (
           <p className="text-sm text-muted">No announcements from your teacher yet.</p>
         ) : (
@@ -120,7 +121,7 @@ export default async function StudentClassPage(props: PageProps<'/classes/[id]'>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Class discussion</h2>
+        <h2 className="dz-section-title">Class discussion</h2>
         <DiscussionThread classId={classId} threads={threads} meId={user.id} canModerate={false} />
       </section>
     </div>

@@ -29,33 +29,30 @@ defenses:
   - Alerting on logon-autostart registry writes from a shell launched moments earlier
   - Physical access control and port locking on unattended machines
 lab:
-  name: "Inject a payload, then catch it"
+  name: "Analyze a BadUSB HID payload and rogue USB audit log"
   environment: sandbox
   brief: >-
-    Using the badusb-lab repository you built earlier, flash a benign baseline payload to the
-    board and run it against your lab VM with process-creation logging enabled. Then flash a
-    payload that changes state and compare the events. The deliverable is the diff, not the
-    injection.
+    Launch your in-browser KVM VM to examine a captured DuckyScript HID injection payload
+    and kernel USB enumeration log in /opt/hid-samples/. You will safely deobfuscate the
+    stage-2 command without executing it, identify the rogue HID device fingerprint, and
+    document the defensive controls that block unauthorized keyboards.
   steps:
-    - do: "Confirm the Digispark board package is installed and select the board 'Digispark (Default - 16.5mhz)', FQBN digistump:avr:digispark-tiny."
-      expect: "The IDE or arduino-cli lists the board. Remember the packager is 'digistump', not 'digispark'."
-    - do: "Flash the benign baseline sketch, which opens the Run dialog and launches Calculator."
-      expect: "Calculator opens on the lab VM. Note the delay: the board must enumerate before it types."
-    - do: "With Sysmon running on the VM, locate the process-creation event for the launched PowerShell and record its parent process."
-      expect: "Event ID 1 shows powershell.exe with explorer.exe as the parent - the signature of a Run-dialog launch, not a scheduled task."
-    - do: "Flash a payload that writes a value under HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run, then look for the registry-write event."
-      expect: "Sysmon Event ID 13 targeting the Run key. This is the highest-signal event in the exercise."
-    - do: "Diff the two event sets. Which events came from the injection technique, and which came from the payload's intent?"
-      expect: "A written diff that separates technique-driven events from intent-driven events."
-    - do: "Reboot the VM and observe whether the persistence value does anything."
-      expect: "The mechanism completes - which is what makes persistence worth detecting early."
+    - do: "Click 'Launch Lab VM' above, open the terminal, and read ~/README-LAB.txt and list /opt/hid-samples/."
+      expect: "You see payload.dd (DuckyScript) and usb-audit.log."
+    - do: "Inspect /opt/hid-samples/payload.dd. Note the initial DELAY, the GUI r keystroke sequence, and the base64-encoded stage-2 string."
+      expect: "You can explain why the payload pauses before typing and how it mimics a human pressing Win+R."
+    - do: "Decode the base64 string safely (e.g. 'echo <b64> | base64 -d') without executing it to capture the [decode] flag."
+      expect: "You recover your unique FLAG{decode_...} and submit it above."
+    - do: "Inspect /opt/hid-samples/usb-audit.log to identify the vendor/product IDs (Teensyduino HID) and extract the SerialNumber for the [usb] flag."
+      expect: "You capture your unique FLAG{usb_...} and note the idVendor/idProduct fields a USBGuard policy would block."
+    - do: "Record in your notes how USBGuard / device-control allowlists and process-creation logging (explorer.exe spawning a shell) work together as defense-in-depth."
+      expect: "Both preventive (USB allowlist) and detective (process ancestry) controls documented."
   success:
-    - A flashed payload that demonstrably runs on the lab VM
-    - The process-creation event identified, including its parent process
-    - A written diff separating injection-driven from intent-driven events
+    - Decoded the obfuscated DuckyScript stage-2 payload safely and captured [decode]
+    - Identified the rogue HID device attributes in usb-audit.log and captured [usb]
+    - Documented preventive and detective controls for HID injection
   cleanup:
-    - "Remove the Run-key value you created, or restore the VM snapshot."
-    - "Do not run the board against your host machine or any machine you do not own."
+    - "Click 'Stop VM' when finished. Never run untrusted DuckyScript payloads on a real host."
 ethics:
   boundary: >-
     The board stays attached to the lab VM only. A programmable HID device is

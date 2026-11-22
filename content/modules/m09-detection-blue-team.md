@@ -28,32 +28,30 @@ defenses:
   - Documenting the evasion each narrowing condition introduces, so the trade-off is explicit
   - Treating missing telemetry as a finding in its own right, since no rule can compensate for absent data
 lab:
-  name: "Write a detection, then break it"
+  name: "Triage SIEM alerts and hunt a live rogue listener"
   environment: sandbox
   brief: >-
-    You will re-run two techniques from earlier modules on your lab VM while collecting
-    telemetry, write a detection rule for each, then deliberately produce benign activity
-    that matches the rule, to measure how much noise you have just created.
+    Launch your in-browser KVM VM in defender mode. A simulated rogue listener is actively
+    running on localhost alongside structured SIEM alerts in /var/log/blue-team-alerts.jsonl.
+    You will triage the high-severity alert, hunt the live listening process back to its
+    systemd unit, and design detection logic that separates real beacons from benign noise.
   steps:
-    - do: "Re-run the HID-injection payload from module 5 on your lab VM with process-creation logging enabled, and export the events."
-      expect: "A saved event set you can query against, not a live view you cannot reproduce."
-    - do: "From the events, extract the fields that distinguish the injection from a normal user launching a program. A parent process, a command-line fragment, a time clustering - whatever actually separates them."
-      expect: "A named set of fields with a stated reason each one separates malicious from benign."
-    - do: "Write detection logic as a query over those fields. Keep it as simple as you can while it still fires."
-      expect: "A query that fires on the recorded malicious event."
-    - do: "Now break it. Perform benign activity that a legitimate user would do and that your query matches - for example, a scheduled script, an admin installing software, a deployment tool launching a shell."
-      expect: "Your own query fires on your own benign activity. This is the false positive, and you found it before production did."
-    - do: "Refine the detection to remove the false positive without losing the true one. Record what you traded away."
-      expect: "A refined rule, plus an explicit note of the evasion it is now blind to."
-    - do: "Repeat the exercise for a persistence technique - the Run-key write - and note where the signal is stronger or weaker than process creation."
-      expect: "A comparison of signal quality between the two technique families."
+    - do: "Click 'Launch Lab VM' above, open the terminal, and read ~/README-LAB.txt."
+      expect: "You have shell access to investigate alerts and live host telemetry."
+    - do: "Inspect /var/log/blue-team-alerts.jsonl (try 'jq . /var/log/blue-team-alerts.jsonl') to locate the high-severity T1059.004 reverse-shell alert and extract its alert_id for the [alert] flag."
+      expect: "You capture FLAG{alert_...} and note the command-line indicator (/dev/tcp/.../4444)."
+    - do: "Hunt the live host for suspicious listeners using 'ss -tlnp' or 'ps aux' to locate the process bound to 127.0.0.1:4444."
+      expect: "You identify /usr/local/bin/rogue-beacon.py running under a systemd unit."
+    - do: "Inspect /etc/systemd/system/rogue-beacon.service to extract BEACON_KEY and submit the [proc] flag."
+      expect: "You capture FLAG{proc_...} and complete both blue-team objectives."
+    - do: "In your notes, write a simple detection rule for unexpected local listeners or /dev/tcp shells, and name one benign admin activity that could trigger a false positive."
+      expect: "A documented rule plus a realistic false-positive edge case."
   success:
-    - Two detection rules, each firing on a technique you executed yourself
-    - Each rule tested against benign activity, with the false positive documented
-    - A written statement of what each refined rule can no longer catch
+    - Triaged the SIEM JSONL alert log and captured [alert]
+    - Traced the live port 4444 listener to its systemd unit and captured [proc]
+    - Documented detection criteria and false-positive tradeoffs
   cleanup:
-    - "Restore the VM snapshot so the detection VM is clean for the next module."
-    - "No detection rule was deployed to any production system."
+    - "Click 'Stop VM' when finished. All simulated processes stay strictly on loopback inside the VM."
 ethics:
   boundary: >-
     Detection work is defensive, but it still requires the offensive activity that produces

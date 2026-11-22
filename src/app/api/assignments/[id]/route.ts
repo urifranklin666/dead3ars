@@ -10,6 +10,7 @@ import {
   setRubric,
   unassignModule,
 } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* One assignment, by id — the object the grading and student views hang off.
  * A teacher reaches it through its class; the routes enforce that. */
@@ -68,7 +69,7 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/assignments/[i
   }
 }
 
-export async function DELETE(_req: Request, ctx: RouteContext<'/api/assignments/[id]'>) {
+export async function DELETE(req: Request, ctx: RouteContext<'/api/assignments/[id]'>) {
   try {
     const teacher = await requireTeacher();
     const { id } = await ctx.params;
@@ -80,6 +81,15 @@ export async function DELETE(_req: Request, ctx: RouteContext<'/api/assignments/
     if (!getModule(assignment.module_id)) return fail('No such module.', 404);
 
     unassignModule(teacher.id, assignment.class_id, assignment.module_id);
+    audit({
+      actorId: teacher.id,
+      actorEmail: teacher.email,
+      action: 'assignment.delete',
+      targetType: 'assignment',
+      targetId: assignmentId,
+      detail: `${assignment.module_id} from class ${assignment.class_id}`,
+      ip: clientIp(req),
+    });
     return ok({ removed: assignmentId, assignments: listAssignments(assignment.class_id) });
   } catch (e) {
     return authError(e) ?? fail('could not remove the assignment', 500);

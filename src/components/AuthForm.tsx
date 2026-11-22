@@ -12,6 +12,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'teacher'>('student');
+  const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -22,7 +23,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setBusy(true);
     setError(null);
 
-    const body = isRegister ? { email, name, password, role } : { email, password };
+    const body = isRegister ? { email, name, password, role, joinCode } : { email, password };
     const res = await fetch(`/api/auth/${mode}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -41,7 +42,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <form onSubmit={submit} className="dz-card space-y-4 p-6">
+    <form onSubmit={submit} className="dz-card dz-auth-card space-y-4 p-6 sm:p-7">
       {isRegister && (
         <label className="block">
           <span className="dz-label">Name</span>
@@ -104,6 +105,21 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </fieldset>
       )}
 
+      {isRegister && (
+        <label className="block">
+          <span className="dz-label">Class Join / Invite Code (optional)</span>
+          <input
+            className="dz-input mt-1.5 font-mono"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+            placeholder="e.g. FALL26-SEC"
+          />
+          <span className="mt-1 block text-xs text-muted">
+            Auto-enrolls you in a class (required when invite-only mode is enabled).
+          </span>
+        </label>
+      )}
+
       {error && (
         <p className="rounded-md border border-danger/50 bg-danger/10 px-3 py-2 text-sm text-danger">
           {error}
@@ -126,7 +142,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <>
             No account?{' '}
             <Link href="/register" className="dz-link">
-              Enrol
+              Enroll
             </Link>
           </>
         )}

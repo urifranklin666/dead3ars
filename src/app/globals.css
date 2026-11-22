@@ -1,30 +1,95 @@
 @import "tailwindcss";
 
-/* dead3ars reads as an operator console: dark, quiet, high-contrast where it
-   counts. Tiers and severity are the only things allowed to shout. */
+/* dead3ars is an operator console: near-black surfaces, crimson signal, and
+   high-contrast type where it counts. Tiers and severity are the only things
+   allowed to shout. */
 
 @theme inline {
-  --color-bg: #0a0e14;
-  --color-panel: #111823;
-  --color-panel-2: #161f2c;
-  --color-line: #223044;
-  --color-ink: #dbe6f2;
-  --color-muted: #8ea3ba;
-  --color-accent: #35d0e8;
-  --color-accent-2: #4ade80;
-  --color-warn: #fbbf24;
-  --color-danger: #fb7185;
+  --color-bg: #08070a;
+  --color-panel: #110f14;
+  --color-panel-2: #18141b;
+  --color-line: #2c2530;
+  --color-ink: #f6eff2;
+  --color-muted: #a89ea8;
+  --color-accent: #ff3b4e;
+  --color-accent-2: #5ee0a8;
+  --color-warn: #f6bb46;
+  --color-danger: #ff6b81;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
 }
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--color-bg);
+  min-height: 100%;
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(1100px 620px at 12% -12%, rgba(255, 59, 78, 0.14), transparent 62%),
+    radial-gradient(900px 520px at 96% -4%, rgba(255, 59, 78, 0.06), transparent 58%),
+    linear-gradient(180deg, #0b0910 0%, #08070a 48%, #070609 100%);
+  background-attachment: fixed;
   color: var(--color-ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* A faint console grid, kept behind everything and well below body text. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.017) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.017) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 20%, transparent 78%);
+}
+
+::selection {
+  background: rgba(255, 59, 78, 0.35);
+  color: #fff;
+}
+
+* {
+  scrollbar-color: #3a303c transparent;
+  scrollbar-width: thin;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Keyboard-only escape hatch past the nav. */
+.dz-skip {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border: 1px solid var(--color-accent);
+  border-radius: 0.5rem;
+  background: var(--color-panel);
+  padding: 0.6rem 1rem;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s ease;
+}
+.dz-skip:focus {
+  transform: translateY(0);
 }
 
 /* ---------- small primitives reused across pages ---------- */
@@ -32,51 +97,98 @@ body {
 .dz-label {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-muted);
 }
 
 .dz-card {
-  background: var(--color-panel);
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 42%),
+    var(--color-panel);
   border: 1px solid var(--color-line);
-  border-radius: 0.625rem;
+  border-radius: 0.875rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 40px -28px rgba(0, 0, 0, 0.9);
+}
+
+.dz-card-hover {
+  transition:
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+.dz-card-hover:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-line));
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 24px 48px -30px rgba(255, 59, 78, 0.55);
+}
+
+.dz-card-accent {
+  border-color: color-mix(in srgb, var(--color-accent) 42%, transparent);
+  background:
+    radial-gradient(720px 240px at 0% 0%, rgba(255, 59, 78, 0.13), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 42%),
+    var(--color-panel);
 }
 
 .dz-input {
   width: 100%;
-  background: var(--color-bg);
+  background: #0b090d;
   border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  padding: 0.55rem 0.75rem;
+  border-radius: 0.625rem;
+  padding: 0.62rem 0.8rem;
   color: var(--color-ink);
   font-size: 0.9375rem;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.dz-input::placeholder {
+  color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+}
+.dz-input:hover:not(:disabled) {
+  border-color: #413645;
 }
 .dz-input:focus {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-  border-color: transparent;
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(255, 59, 78, 0.16);
+}
+.dz-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* A select needs its own rule instead of reusing .dz-input, whose width:100%
    would stretch it inside a flex row — but it keeps the same focus ring. */
 .dz-select {
   appearance: none;
-  background-color: var(--color-bg);
+  background-color: #0b090d;
   border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  padding: 0.55rem 2rem 0.55rem 0.8rem;
   color: var(--color-ink);
   font-size: 0.9375rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238ea3ba' stroke-width='1.6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a89ea8' stroke-width='1.6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.6rem center;
+  background-position: right 0.65rem center;
   background-size: 0.7rem;
+  transition:
+    border-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.dz-select:hover:not(:disabled) {
+  border-color: #413645;
 }
 .dz-select:focus {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-  border-color: transparent;
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(255, 59, 78, 0.16);
 }
 .dz-select:disabled {
   opacity: 0.5;
@@ -90,38 +202,125 @@ body {
 .dz-link {
   color: var(--color-accent);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.14s ease;
+}
+.dz-link:hover {
+  color: #ff7583;
 }
 
 .dz-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  border-radius: 0.5rem;
-  padding: 0.55rem 1rem;
+  gap: 0.45rem;
+  border-radius: 0.625rem;
+  padding: 0.58rem 1.05rem;
   font-size: 0.9375rem;
   font-weight: 600;
+  line-height: 1.2;
   border: 1px solid var(--color-line);
-  background: var(--color-panel-2);
+  background: linear-gradient(180deg, #1d1821, #151218);
   color: var(--color-ink);
   cursor: pointer;
-  transition: border-color 0.12s ease, background 0.12s ease;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
 }
 .dz-btn:hover:not(:disabled) {
-  border-color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-line));
+  transform: translateY(-1px);
+}
+.dz-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .dz-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .dz-btn-primary {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #04161b;
+  background-color: var(--color-accent);
+  background-image: linear-gradient(180deg, #ff5263, #df1732);
+  border-color: #ff6070;
+  color: #1b0308;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 10px 28px -14px rgba(255, 59, 78, 0.9);
 }
 .dz-btn-primary:hover:not(:disabled) {
-  background: #5fdcef;
+  background-color: #ff5263;
+  background-image: linear-gradient(180deg, #ff6a79, #f01d39);
+  border-color: #ff8491;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 14px 34px -14px rgba(255, 59, 78, 1);
+}
+.dz-btn-danger {
+  background: rgba(255, 107, 129, 0.08);
+  border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
+  color: var(--color-danger);
+}
+.dz-btn-danger:hover:not(:disabled) {
+  background: rgba(255, 107, 129, 0.14);
+  border-color: var(--color-danger);
+}
+
+.dz-nav-link {
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  transition:
+    color 0.14s ease,
+    background 0.14s ease;
+}
+.dz-nav-link:hover {
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.04);
+}
+.dz-nav-link[aria-current="page"] {
+  color: var(--color-ink);
+  background: rgba(255, 59, 78, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(255, 59, 78, 0.22);
+}
+
+.dz-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.dz-section-title::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 1.1em;
+  border-radius: 999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 14px rgba(255, 59, 78, 0.65);
+}
+
+.dz-progress {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-panel-2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.dz-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a90f24, var(--color-accent));
+  box-shadow: 0 0 12px rgba(255, 59, 78, 0.55);
+  transition: width 0.4s ease;
 }
 
 /* ---------- tier + tier-like badges ---------- */
@@ -132,9 +331,10 @@ body {
   font-size: 0.625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 0.15rem 0.45rem;
+  padding: 0.16rem 0.48rem;
   border-radius: 999px;
   border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 9%, transparent);
   white-space: nowrap;
 }
 .dz-badge-foundation { color: var(--color-accent-2); }
@@ -146,18 +346,24 @@ body {
 
 .prose-dz {
   font-size: 1rem;
-  line-height: 1.75;
+  line-height: 1.78;
   color: var(--color-ink);
 }
 .prose-dz > * + * {
   margin-top: 1rem;
 }
+.prose-dz h2,
 .prose-dz h3,
 .prose-dz h4 {
   font-family: var(--font-mono);
   font-size: 1.0625rem;
-  margin-top: 1.75rem;
+  margin-top: 1.9rem;
   color: #fff;
+}
+.prose-dz h2 {
+  padding-left: 0.7rem;
+  border-left: 3px solid var(--color-accent);
+  font-size: 1.125rem;
 }
 .prose-dz ul,
 .prose-dz ol {
@@ -165,26 +371,28 @@ body {
 }
 .prose-dz ul { list-style: disc; }
 .prose-dz ol { list-style: decimal; }
-.prose-dz li + li { margin-top: 0.35rem; }
+.prose-dz li + li { margin-top: 0.4rem; }
+.prose-dz li::marker { color: var(--color-accent); }
 .prose-dz a {
   color: var(--color-accent);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
 .prose-dz strong { color: #fff; }
 .prose-dz code {
   font-family: var(--font-mono);
   font-size: 0.875em;
-  background: #0d131c;
+  background: #120f16;
   border: 1px solid var(--color-line);
-  border-radius: 0.25rem;
-  padding: 0.05rem 0.3rem;
+  border-radius: 0.3rem;
+  padding: 0.06rem 0.32rem;
 }
 .prose-dz pre {
-  background: #0d131c;
+  background: #0b090d;
   border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
-  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0.65rem;
+  padding: 0.9rem 1rem;
   overflow-x: auto;
 }
 .prose-dz pre code {
@@ -193,9 +401,15 @@ body {
   padding: 0;
 }
 .prose-dz blockquote {
-  border-left: 3px solid var(--color-line);
-  padding-left: 0.9rem;
+  border-left: 3px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
+  background: rgba(255, 59, 78, 0.05);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 0.7rem 0.95rem;
   color: var(--color-muted);
+}
+.prose-dz hr {
+  border: 0;
+  border-top: 1px solid var(--color-line);
 }
 .prose-dz table {
   width: 100%;
@@ -205,6 +419,55 @@ body {
 .prose-dz th,
 .prose-dz td {
   border: 1px solid var(--color-line);
-  padding: 0.4rem 0.6rem;
+  padding: 0.45rem 0.65rem;
   text-align: left;
+}
+.prose-dz th {
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+}
+
+/* ---------- tables ---------- */
+
+main table {
+  border-collapse: collapse;
+}
+main thead {
+  background: rgba(255, 255, 255, 0.025);
+}
+main tbody tr {
+  transition: background 0.12s ease;
+}
+main tbody tr:hover {
+  background: rgba(255, 59, 78, 0.045);
+}
+
+/* ---------- auth + empty states ---------- */
+
+.dz-auth-card {
+  border-top: 2px solid var(--color-accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 30px 70px -40px rgba(255, 59, 78, 0.45);
+}
+
+.dz-empty {
+  border: 1px dashed var(--color-line);
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.012);
+  padding: 1.5rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
 }

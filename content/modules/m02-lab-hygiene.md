@@ -24,31 +24,29 @@ defenses:
   - Snapshots taken before each exercise and verified by restoring one
   - A second, unrelated VM used for any payload that is designed to spread
 lab:
-  name: "Claim your range and roll it back"
+  name: "Verify range isolation, harden secrets, and roll back"
   environment: sandbox
   brief: >-
-    You will configure a throwaway virtual machine, prove it cannot reach the internet or
-    your host network, make a deliberate change to it, snapshot, make a second change,
-    revert, and prove the second change is gone. You will also hash an artifact and record
-    it as evidence.
+    Launch your isolated in-browser KVM VM above. You will verify that the VM has zero
+    network egress (loopback only), run the host hygiene audit script, harden an exposed
+    secrets file, and practice resetting the VM back to a clean snapshot.
   steps:
-    - do: "Create a VM (VirtualBox, VMware, or Hyper-V) and set its network adapter to a host-only or internal network. Do not use bridged."
-      expect: "The VM has an IP address but cannot reach the internet or your physical LAN."
-    - do: "From inside the VM, try to reach the internet and try to reach your host's LAN router; record both results."
-      expect: "Both fail. If either succeeds, your isolation is not real - fix it before continuing."
-    - do: "Disable shared folders and clipboard sharing between host and guest; try to copy a file across."
-      expect: "No shared surface remains. Note why this matters: a shared folder is an escape path."
-    - do: "Create a file in the VM, then run the provided artifact generator to produce a sample file with a known SHA-256 recorded in the module notes."
-      expect: "You have a file and can state its hash."
-    - do: "Take a snapshot. Then change the file. Then revert to the snapshot."
-      expect: "The file is back to its original contents - and the hash matches the one you recorded."
+    - do: "Click 'Launch Lab VM' above and open the XFCE terminal (or switch to the Serial Terminal tab). Read ~/README-LAB.txt."
+      expect: "You are logged in as student@dead3ars-lab inside an isolated Debian 12 desktop."
+    - do: "Inspect network interfaces with 'ip -br link' and test outbound reachability (e.g. 'ping -c 1 1.1.1.1')."
+      expect: "Only the loopback interface (lo) exists and outbound connections fail immediately — real network isolation."
+    - do: "Run '/opt/lab-check/verify-hygiene.sh' to verify isolation and retrieve the [iso] flag, then submit it in the Submit Flag panel."
+      expect: "ISOLATION_OK prints your unique FLAG{iso_...} and the script warns that ~/.secrets.env is world-readable."
+    - do: "Inspect permissions on ~/.secrets.env ('ls -la ~/.secrets.env'), restrict it to owner-only ('chmod 600 ~/.secrets.env'), and re-run '/opt/lab-check/verify-hygiene.sh'."
+      expect: "PERMISSIONS_OK prints your unique FLAG{perm_...}; submit it to complete the lab."
+    - do: "Practice rollback: click 'Reset VM' in the toolbar above and confirm ~/.secrets.env returns to its original state."
+      expect: "A verified clean snapshot restore from the CoW base image."
   success:
-    - A lab VM with no route to the internet and no shared surface with the host
-    - A snapshot you have actually restored, with the file contents verified after revert
-    - One artifact hashed and its digest recorded in your notes
+    - Confirmed loopback-only isolation and captured the [iso] flag
+    - Hardened ~/.secrets.env to mode 600 and captured the [perm] flag
+    - Verified clean snapshot rollback via Reset VM
   cleanup:
-    - "Delete the throwaway files, then power the VM off. Keep the snapshot for the next module."
-    - "Do not attach the VM to your real LAN to make anything easier."
+    - "Click 'Stop VM' when finished. Your temporary CoW disk overlay is automatically destroyed on teardown."
 ethics:
   boundary: >-
     A lab is a machine you own or one this course provides, with no path to anyone else's

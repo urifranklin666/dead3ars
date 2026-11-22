@@ -4,7 +4,7 @@ import { authError, fail, ok } from '@/lib/api';
 import { classesForStudent, enrollByCode } from '@/lib/classroom';
 import { audit, clientIp } from '@/lib/audit';
 
-/* A student enrols in a class with its join code. The code is the only thing
+/* A student enrolls in a class with its join code. The code is the only thing
  * that grants membership, so a student cannot enumerate classes they were not
  * invited to. */
 

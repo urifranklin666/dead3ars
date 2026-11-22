@@ -49,7 +49,7 @@ for (const file of files) {
   const noExplain = m.assessment.filter((q) => q.explain.trim().length < 20).length;
   check(`${file}: every question has a real explanation`, noExplain === 0, noExplain ? `${noExplain} thin` : '');
 
-  /* Defence pairing is what keeps this a security course, not an exploit dump. */
+  /* Defense pairing is what keeps this a security course, not an exploit dump. */
   check(`${file}: has at least one defensive control`, m.defenses.length >= 1);
   check(`${file}: ethics block is specific`, m.ethics.boundary.length > 40 && m.ethics.legal.length > 40);
 

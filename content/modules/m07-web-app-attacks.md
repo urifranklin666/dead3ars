@@ -27,31 +27,30 @@ defenses:
   - Session identifier regeneration on authentication and server-side expiry on logout
   - Alerting on patterns of denied authorization, which is where this class leaves a trace
 lab:
-  name: "Attack and repair a vulnerable web app"
+  name: "Exploit and repair a vulnerable web application"
   environment: sandbox
   brief: >-
-    Run a deliberately vulnerable web application (for example an OWASP Juice Shop or an
-    equivalent provided image) inside your isolated lab. Exploit three classes of flaw.
-    Then patch each one and prove the exploit no longer works.
+    Launch your in-browser KVM VM, which runs a deliberately vulnerable Python/SQLite web
+    portal at http://127.0.0.1:8080 (source at /opt/vulnapp/server.py). You will exploit
+    three classic OWASP flaws — SQL injection, broken access control (IDOR), and weak
+    session cookies — capture all three flags, and then patch the source code to verify
+    your fixes.
   steps:
-    - do: "Deploy the vulnerable application in your lab VM and confirm it is reachable only from the host-only network."
-      expect: "The app loads from the lab network and is not reachable from outside the lab."
-    - do: "Find an injection flaw and demonstrate it. Record the exact request and response."
-      expect: "A captured request that alters the application's behaviour, with both messages saved."
-    - do: "Find a broken access control flaw - reach a resource or function belonging to another user or role."
-      expect: "Evidence of access that should have been denied, with the request that achieved it."
-    - do: "Find an authentication or session weakness. Show what it allows."
-      expect: "A concrete impact such as session fixation or credential enumeration."
-    - do: "Now switch sides. Patch each flaw in the application source or configuration."
-      expect: "A specific code or configuration change per flaw, not a generic recommendation."
-    - do: "Re-run the exact original requests against the patched application."
-      expect: "Each exploit now fails, and you have the response proving it failed - for the same reason, not because the app broke."
+    - do: "Click 'Launch Lab VM' above and open http://127.0.0.1:8080 in Firefox (or use curl from the terminal). Read ~/README-LAB.txt."
+      expect: "The Dead3ars Vulnerable Portal loads locally with Search, Login (alice/alice123), Notes, and Admin links."
+    - do: "Exploit SQL injection in /search (e.g. a UNION SELECT against the users table's secret column) to extract the admin secret and submit the [sqli] flag."
+      expect: "The JSON response returns the admin user's FLAG{sqli_...} value."
+    - do: "Exploit Broken Access Control (IDOR) on /notes?id=2 by requesting /notes?id=1 (Admin Vault) and submit the [idor] flag."
+      expect: "You read another user's private note and capture FLAG{idor_...}."
+    - do: "Log in as alice/alice123, inspect the unsigned session cookie (alice:user), forge it to admin:admin against /admin, and submit the [auth] flag."
+      expect: "The /admin endpoint accepts the forged cookie and returns FLAG{auth_...}."
+    - do: "Switch to defender mode: inspect /opt/vulnapp/server.py and note the exact code changes needed (parameterized queries, server-side owner checks, signed/opaque sessions)."
+      expect: "A specific remediation mapped to each of the three flaws in /opt/vulnapp/server.py."
   success:
-    - Three exploited flaws, each with the request and response recorded
-    - A specific patch for each, applied
-    - Re-test evidence showing each exploit now fails
+    - Exploited SQLi, IDOR, and weak session auth to capture all three flags ([sqli], [idor], [auth])
+    - Identified the root-cause code fixes in /opt/vulnapp/server.py
   cleanup:
-    - "Revert the VM snapshot, or leave the patched application in place deliberately and note which state you are keeping."
+    - "Click 'Reset VM' to restore the original vulnerable app, or 'Stop VM' when finished."
 ethics:
   boundary: >-
     The target is the vulnerable application provided for this lab, running on your own

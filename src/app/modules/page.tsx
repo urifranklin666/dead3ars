@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ModuleList } from '@/components/ModuleList';
 import { loadModules } from '@/lib/curriculum';
 import { progressMap } from '@/lib/progress';
@@ -18,31 +19,65 @@ export default async function ModulesPage() {
   const progress = user ? progressMap(user.id) : {};
 
   const tiers = ['foundation', 'core', 'advanced'] as const;
+  const minutes = modules.reduce((n, m) => n + m.minutes, 0);
 
   return (
-    <div className="space-y-10">
-      <header className="space-y-3">
-        <p className="dz-label">Twelve modules</p>
-        <h1 className="text-3xl font-bold tracking-tight">Syllabus</h1>
+    <div className="space-y-12">
+      <header className="space-y-4">
+        <p className="dz-label flex items-center gap-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_10px_#ff3b4e]" />
+          {modules.length} modules · {minutes} minutes
+        </p>
+        <h1 className="text-4xl font-bold tracking-[-0.03em]">Syllabus</h1>
         <p className="max-w-2xl leading-relaxed text-muted">
           Work through them in order. Each module states its own ethics boundary, gives the
           attacker&rsquo;s view and the defender&rsquo;s view of the same technique, and ends
           with a short assessment whose explanations are released only after you submit.
         </p>
-        {!user && (
+        {!user ? (
+          <p className="max-w-2xl text-sm leading-relaxed text-muted">
+            Modules 1–3 are open.{' '}
+            <Link href="/register" className="dz-link">
+              Enroll
+            </Link>{' '}
+            or{' '}
+            <Link href="/login" className="dz-link">
+              sign in
+            </Link>{' '}
+            to unlock the rest and have your progress recorded.
+          </p>
+        ) : (
           <p className="text-sm text-muted">
-            Modules 1–3 are open. Sign in to unlock the rest and to have your progress recorded.
+            {Object.keys(progress).length} of {modules.length} modules started.
           </p>
         )}
       </header>
+
+      <nav
+        className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-panel/60 p-2"
+        aria-label="Tiers"
+      >
+        {tiers.map((tier) => {
+          const inTier = modules.filter((m) => m.tier === tier).length;
+          return (
+            <a
+              key={tier}
+              href={`#${tier}`}
+              className={`dz-badge dz-badge-${tier} px-3 py-1.5`}
+            >
+              {tier} · {inTier}
+            </a>
+          );
+        })}
+      </nav>
 
       {tiers.map((tier) => {
         const inTier = modules.filter((m) => m.tier === tier);
         if (inTier.length === 0) return null;
 
         return (
-          <section key={tier} className="space-y-4">
-            <div className="flex items-baseline gap-3">
+          <section key={tier} id={tier} className="scroll-mt-24 space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
               <span className={`dz-badge dz-badge-${tier}`}>{tier}</span>
               <p className="text-sm text-muted">{TIER_BLURB[tier]}</p>
             </div>

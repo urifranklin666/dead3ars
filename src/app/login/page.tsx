@@ -9,10 +9,13 @@ export default function LoginPage() {
   const demo = process.env.DZ_DEMO === '1';
 
   return (
-    <div className="mx-auto max-w-sm space-y-6 py-8">
+    <div className="mx-auto max-w-md space-y-6 py-10">
       <header className="space-y-2">
         <p className="dz-label">Return to your coursework</p>
-        <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Sign in</h1>
+        <p className="text-sm text-muted">
+          Pick up where you left off. Your progress, notes, and classwork are tied to this account.
+        </p>
       </header>
 
       {demo && (

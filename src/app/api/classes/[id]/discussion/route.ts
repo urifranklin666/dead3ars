@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { requireUser } from '@/lib/auth';
 import { authError, fail, ok } from '@/lib/api';
 import { canSeeClass, deleteDiscussionPost, listDiscussion, postDiscussion } from '@/lib/classroom';
+import { audit, clientIp } from '@/lib/audit';
 
 /* Class discussion. Readable and writable by the class's teacher and its
  * enrolled students — the membership check is canSeeClass(). */
@@ -34,6 +35,15 @@ export async function POST(req: Request, ctx: RouteContext<'/api/classes/[id]/di
 
     try {
       const post = postDiscussion(classId, user.id, parsed.data.body, parsed.data.parentId);
+      audit({
+        actorId: user.id,
+        actorEmail: user.email,
+        action: 'discussion.post',
+        targetType: 'class',
+        targetId: classId,
+        detail: parsed.data.parentId ? `reply to ${parsed.data.parentId}` : 'thread',
+        ip: clientIp(req),
+      });
       return ok({ post }, 201);
     } catch (e) {
       if (e instanceof Error && e.message === 'BAD_PARENT') {
@@ -74,6 +84,15 @@ export async function DELETE(req: Request, ctx: RouteContext<'/api/classes/[id]/
     }
 
     deleteDiscussionPost(postId);
+    audit({
+      actorId: user.id,
+      actorEmail: user.email,
+      action: 'discussion.delete',
+      targetType: 'class',
+      targetId: classId,
+      detail: String(postId),
+      ip: clientIp(req),
+    });
     return ok({ removed: postId });
   } catch (e) {
     return authError(e) ?? fail('could not remove the post', 500);

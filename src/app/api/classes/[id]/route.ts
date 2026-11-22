@@ -37,6 +37,7 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/classes/[id]'>
     if (!parsed.success) return fail('Nothing to change.');
 
     let klass = ownedClass(teacher.id, classId)!;
+    const before = klass;
     if (parsed.data.name !== undefined) klass = renameClass(teacher.id, classId, parsed.data.name) ?? klass;
     if (parsed.data.rotateCode) {
       klass = rotateJoinCode(teacher.id, classId) ?? klass;
@@ -47,6 +48,17 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/classes/[id]'>
         targetType: 'class',
         targetId: classId,
         detail: klass.name,
+        ip: clientIp(req),
+      });
+    }
+    if (klass.name !== before.name) {
+      audit({
+        actorId: teacher.id,
+        actorEmail: teacher.email,
+        action: 'class.rename',
+        targetType: 'class',
+        targetId: classId,
+        detail: `${before.name} -> ${klass.name}`,
         ip: clientIp(req),
       });
     }

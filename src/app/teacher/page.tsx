@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { curriculumStats, loadModules } from '@/lib/curriculum';
-import { cohort, type CohortRow } from '@/lib/progress';
+import { cohort, cohortModuleStats, type CohortRow } from '@/lib/progress';
 import { moduleHref, studentHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
@@ -28,27 +28,46 @@ export default async function TeacherPage() {
         )
       : null;
 
-  /* Where the cohort stalls is a curriculum signal, not just a student one. */
+  /* Where the cohort stalls is a curriculum signal, not just a student one.
+   * Counts come from the progress rows themselves, so a student who jumped
+   * straight to module 7 still counts as having started module 7. */
+  const moduleStats = new Map(cohortModuleStats().map((s) => [s.module_id, s]));
   const startedByModule = modules.map((m) => ({
     mod: m,
-    started: rows.filter((r) => r.modules_started >= m.order).length,
-    passed: rows.filter((r) => r.assessments_passed >= m.order).length,
+    started: moduleStats.get(m.id)?.started ?? 0,
+    passed: moduleStats.get(m.id)?.passed ?? 0,
   }));
 
   return (
     <div className="space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-2">
-          <p className="dz-label">Teacher · {user.name}</p>
-          <h1 className="text-3xl font-bold tracking-tight">Cohort</h1>
-          <p className="text-sm text-muted">
-            {stats.modules} modules · {stats.questions} assessment questions ·{' '}
-            {stats.techniques} ATT&amp;CK techniques in the curriculum.
-          </p>
+        <div className="flex items-center gap-4">
+          <span
+            aria-hidden
+            className="grid h-14 w-14 place-items-center rounded-2xl border border-accent/30 bg-accent/10 font-mono text-xl font-bold text-accent shadow-[0_0_30px_-10px_#ff3b4e]"
+          >
+            {user.name.slice(0, 1).toUpperCase()}
+          </span>
+          <div className="space-y-1">
+            <p className="dz-label">Teacher console · {user.name}</p>
+            <h1 className="text-3xl font-bold tracking-tight">Cohort</h1>
+            <p className="text-sm text-muted">
+              {stats.modules} modules · {stats.questions} assessment questions ·{' '}
+              {stats.techniques} ATT&amp;CK techniques in the curriculum.
+            </p>
+          </div>
         </div>
-        <Link href="/teacher/classes" className="dz-btn dz-btn-primary">
-          Classes &amp; assignments
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/teacher/labs" className="dz-btn dz-btn-primary">
+            Live Labs
+          </Link>
+          <Link
+            href={user.role === 'admin' ? '/admin' : '/teacher/classes'}
+            className="dz-btn"
+          >
+            {user.role === 'admin' ? 'Admin console' : 'Classes & assignments'}
+          </Link>
+        </div>
       </header>
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -59,11 +78,11 @@ export default async function TeacherPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Progress by student</h2>
+        <h2 className="dz-section-title">Progress by student</h2>
         {rows.length === 0 ? (
           <div className="dz-card p-6 text-sm text-muted">
             No student accounts yet. Run <code className="font-mono">npm run seed</code> to
-            create a demo cohort, or have students enrol.
+            create a demo cohort, or have students enroll.
           </div>
         ) : (
           <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Students">
@@ -89,7 +108,7 @@ export default async function TeacherPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Where the cohort is</h2>
+        <h2 className="dz-section-title">Where the cohort is</h2>
         <div className="space-y-2">
           {startedByModule.map(({ mod, started, passed }) => {
             const pct = rows.length ? Math.round((started / rows.length) * 100) : 0;
@@ -97,18 +116,18 @@ export default async function TeacherPage() {
               <Link
                 key={mod.id}
                 href={moduleHref(mod.id)}
-                className="dz-card block p-4 hover:border-accent"
+                className="dz-card dz-card-hover block p-4"
               >
-                <div className="flex items-baseline justify-between gap-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <span className="text-sm font-medium">
                     {String(mod.order).padStart(2, '0')} · {mod.title}
                   </span>
                   <span className="font-mono text-xs text-muted">
-                    {started}/{rows.length} started · {passed} passed
+                    {started}/{rows.length} started · <span className="text-accent-2">{passed} passed</span>
                   </span>
                 </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel-2">
-                  <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+                <div className="dz-progress mt-2.5">
+                  <span style={{ width: `${pct}%` }} />
                 </div>
               </Link>
             );

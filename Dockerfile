@@ -23,6 +23,10 @@ ENV NODE_ENV=production
 # can mount. DZ_DB overrides it (see src/lib/db.ts).
 ENV DZ_DB=/data/dead3ars.db
 ENV PORT=3000
+# Docker sets HOSTNAME to the container id; the standalone server would bind to
+# that interface only, so bind all interfaces explicitly (and make the in-image
+# 127.0.0.1 healthcheck work).
+ENV HOSTNAME=0.0.0.0
 
 # Standalone output: the server, its traced node_modules, and the traced
 # content/modules (declared in outputFileTracingIncludes).

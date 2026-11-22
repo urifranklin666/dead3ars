@@ -5,7 +5,7 @@ import { loadModules } from './curriculum';
 import type { Status } from './progress';
 
 /*
- * Classes, enrolment, and assignments — the teacher's roster layer. A class is
+ * Classes, enrollment, and assignments — the teacher's roster layer. A class is
  * a named group of students with a join code; assignments hang off a class and
  * name a module plus an optional due date. Everything here is scoped to the
  * owning teacher, and the routes enforce that; these functions take the ids and
@@ -108,7 +108,7 @@ export function rotateJoinCode(teacherId: number, classId: number): ClassRow | u
   return classById(classId);
 }
 
-/* ---------- enrolment ---------- */
+/* ---------- enrollment ---------- */
 
 export function enrollByCode(studentId: number, code: string): ClassRow {
   const row = db()
@@ -725,12 +725,19 @@ export function parseRosterCsv(text: string): ParsedRoster {
   const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
   let start = 0;
-  let emailFirst = false;
+  let emailIdx: number | null = null;
+  let nameIdx: number | null = null;
   const first = split(lines[0]);
-  const lower = first.map((s) => s.toLowerCase());
-  if (lower.some((s) => s === 'email' || s === 'e-mail' || s === 'mail')) {
-    emailFirst = lower[0] !== 'name';
+  const lower = first.map((s) => s.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim());
+  const looksLikeEmailHeader = (s: string) => s === 'mail' || s.includes('email');
+  const looksLikeNameHeader = (s: string) =>
+    s === 'name' || s === 'student' || s.includes('name');
+  const headerEmail = lower.findIndex(looksLikeEmailHeader);
+  const headerName = lower.findIndex(looksLikeNameHeader);
+  if (headerEmail !== -1 || headerName !== -1) {
     start = 1;
+    emailIdx = headerEmail !== -1 ? headerEmail : null;
+    nameIdx = headerName !== -1 ? headerName : null;
   }
 
   const rows: { name: string; email: string }[] = [];
@@ -739,12 +746,18 @@ export function parseRosterCsv(text: string): ParsedRoster {
     const fields = split(lines[i]);
     let email = '';
     let name = '';
-    if (emailFirst) {
-      email = fields[0] ?? '';
-      name = fields[1] ?? '';
+
+    if (emailIdx !== null) {
+      /* A recognised header tells us the columns even when they are labelled
+       * "Student" / "School email" rather than "name" / "email". */
+      email = fields[emailIdx] ?? '';
+      name = nameIdx !== null ? (fields[nameIdx] ?? '') : (fields.find((_, j) => j !== emailIdx) ?? '');
     } else if (isEmail(fields[1] ?? '')) {
       name = fields[0] ?? '';
       email = fields[1] ?? '';
+    } else if (isEmail(fields[0] ?? '')) {
+      email = fields[0] ?? '';
+      name = fields[1] ?? '';
     } else {
       email = fields[0] ?? '';
       name = fields[1] ?? '';
@@ -779,7 +792,7 @@ export interface ImportResult {
   skipped: { line: number; reason: string }[];
 }
 
-/* Create accounts for a parsed roster and enrol them. An email that already has
+/* Create accounts for a parsed roster and enroll them. An email that already has
  * an account is enrolled rather than recreated — a teacher re-running an import
  * after adding one line must not fail on the students already present. */
 export function importRoster(

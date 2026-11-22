@@ -29,32 +29,29 @@ defenses:
   - Centralising and protecting logs off-host, so on-host tampering is not fatal to the investigation
   - Separating observation from attribution, and stating the limits of what the artefacts support
 lab:
-  name: "Reconstruct an incident from artefacts"
+  name: "Reconstruct an intrusion timeline from captured evidence"
   environment: analysis
   brief: >-
-    You are given a pre-captured evidence set from a lab VM on which a scripted intrusion
-    ran: host event logs, a process-creation export, and a captured registry hive. You will
-    build a timeline, identify the techniques, and write the report. The offensive work was
-    done in an earlier module, so this one is read-only.
+    Launch your in-browser KVM VM to examine a read-only forensic evidence bundle under
+    /var/evidence/ (access.log, auth.log, and exfil-manifest.json). You will trace the
+    intruder from initial web upload through privilege abuse to DNS exfiltration, capturing
+    three forensic flags and assembling a clean incident timeline.
   steps:
-    - do: "Inventory the evidence you have been given and record the capture time of each source. Note what is missing."
-      expect: "A list of sources with timestamps and a stated gap - there is always a gap."
-    - do: "Query the process-creation export for the intrusion window and order the events."
-      expect: "An ordered list of process creations with parents and command lines."
-    - do: "Find the first event you can attribute to the intruder with confidence, and state your confidence and the evidence behind it."
-      expect: "A defensible start-of-intrusion time, not a guess."
-    - do: "Examine the captured registry hive for autostart values, including ones with unusual or recently modified timestamps."
-      expect: "Any persistence entries, with the value's last-write time as corroboration."
-    - do: "Check for evidence of log tampering or cleared records. What is absent can be as informative as what is present."
-      expect: "A statement of whether you can rule out anti-forensic activity, and on what basis."
-    - do: "Write the incident report: what happened, in what order, what was affected, what the impact was, and what should change."
-      expect: "A report a manager could act on without reading the raw logs."
+    - do: "Click 'Launch Lab VM' above, open the terminal, and inventory /var/evidence/ ('ls -la /var/evidence'). Read ~/README-LAB.txt."
+      expect: "You see access.log, auth.log, and exfil-manifest.json."
+    - do: "Analyze /var/evidence/access.log to find the attacker IP (198.51.100.77), the suspicious POST /api/debug/upload request, and submit the [ip] token flag."
+      expect: "You establish the start of intrusion (08:14 UTC) and capture FLAG{ip_...}."
+    - do: "Correlate with /var/evidence/auth.log to find the www-data sudo tar command staging /etc/shadow and db backups, and submit the [path] flag."
+      expect: "You capture FLAG{path_...} and link the web compromise to privilege abuse at 08:15 UTC."
+    - do: "Inspect /var/evidence/exfil-manifest.json (with 'jq .') to identify the anomalous DNS egress query and submit the [exfil] flag."
+      expect: "You capture FLAG{exfil_...} and complete the end-to-end timeline (08:14 → 08:18 UTC)."
+    - do: "Write a brief timeline in your module notes naming each stage's timestamp, ATT&CK technique, and one missing telemetry source you wish you had."
+      expect: "A concise incident timeline suitable for a manager or incident ticket."
   success:
-    - A timeline built from at least two independent sources, with conflicts noted
-    - Each attributed technique named with its ATT&CK ID and the artefact that supports it
-    - A written report with findings, impact, and prioritized recommendations
+    - Reconstructed all three intrusion stages and captured [ip], [path], and [exfil]
+    - Documented a chronological timeline with ATT&CK mapping and evidence gaps
   cleanup:
-    - "The evidence set is read-only. Do not modify it - a forensic artefact that has been changed is no longer evidence."
+    - "Evidence under /var/evidence/ is read-only. Click 'Stop VM' when finished."
 ethics:
   boundary: >-
     This module is entirely read-only analysis. The evidence set is provided, and you do not

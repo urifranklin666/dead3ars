@@ -7,10 +7,10 @@ import { ClassCodePanel } from '@/components/ClassCodePanel';
 import { DiscussionThread } from '@/components/DiscussionThread';
 import { RemoveAssignmentButton } from '@/components/RemoveAssignmentButton';
 import { RosterImport } from '@/components/RosterImport';
-import { gradebook, listAnnouncements, listAssignments, listDiscussion, ownedClass, roster } from '@/lib/classroom';
+import { gradebook, classById, listAnnouncements, listAssignments, listDiscussion, ownedClass, roster } from '@/lib/classroom';
 import { loadModules } from '@/lib/curriculum';
-import { studentHref } from '@/lib/routes';
-import { isStaff, viewer } from '@/lib/session';
+import { classAnalyticsHref, studentHref } from '@/lib/routes';
+import { isAdmin, isStaff, viewer } from '@/lib/session';
 import { percent } from '@/lib/format';
 
 export const metadata: Metadata = { title: 'Class — dead3ars' };
@@ -25,8 +25,12 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
   const classId = Number(id);
   if (!Number.isInteger(classId)) notFound();
 
-  const klass = user ? ownedClass(user.id, classId) : undefined;
+  /* Admins can inspect any class read-only from the admin console; only the
+   * owning teacher gets the management controls. */
+  const admin = isAdmin(user);
+  const klass = admin ? classById(classId) : ownedClass(user.id, classId);
   if (!klass) notFound();
+  const canManage = klass.teacher_id === user.id;
 
   const modules = loadModules();
   const titles = new Map(modules.map((m) => [m.id, m]));
@@ -51,44 +55,56 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
   return (
     <div className="space-y-10">
       <nav className="font-mono text-xs text-muted" aria-label="Breadcrumb">
-        <Link href="/teacher" className="hover:text-ink">
-          cohort
+        <Link href={canManage ? '/teacher' : '/admin'} className="hover:text-ink">
+          {canManage ? 'cohort' : 'admin'}
         </Link>
         <span className="mx-1.5">/</span>
-        <Link href="/teacher/classes" className="hover:text-ink">
-          classes
-        </Link>
-        <span className="mx-1.5">/</span>
+        {canManage && (
+          <>
+            <Link href="/teacher/classes" className="hover:text-ink">
+              classes
+            </Link>
+            <span className="mx-1.5">/</span>
+          </>
+        )}
         <span>{klass.name}</span>
       </nav>
 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <p className="dz-label">Class</p>
-          <h1 className="text-3xl font-bold tracking-tight">{klass.name}</h1>
+          <p className="dz-label">{canManage ? 'Class' : 'Class · admin view'}</p>
+          <h1 className="text-3xl font-bold tracking-[-0.02em]">{klass.name}</h1>
           <p className="text-sm text-muted">
             {roster(classId).length} enrolled · {assignments.length} assigned
+            {!canManage && ' · admin view'}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href={`/teacher/classes/${classId}/analytics` as never} className="dz-btn">
+          <Link href={classAnalyticsHref(classId)} className="dz-btn">
             Analytics
           </Link>
-          <a href={`/api/classes/${classId}/export`} className="dz-btn">
-            Export CSV
-          </a>
-          <Link href="/teacher/classes" className="dz-btn">
-            All classes
+          {canManage && (
+            <a href={`/api/classes/${classId}/export`} className="dz-btn">
+              Export CSV
+            </a>
+          )}
+          <Link href={canManage ? '/teacher/classes' : '/admin'} className="dz-btn">
+            {canManage ? 'All classes' : 'Admin console'}
           </Link>
         </div>
       </header>
 
-      <ClassCodePanel classId={classId} code={klass.join_code} redirectAfterDelete="/teacher/classes" />
+      <ClassCodePanel
+        classId={classId}
+        code={klass.join_code}
+        redirectAfterDelete={canManage ? '/teacher/classes' : null}
+        readOnly={!canManage}
+      />
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Announcements</h2>
-          <AnnouncementComposer classId={classId} />
+          <h2 className="dz-section-title">Announcements</h2>
+          {canManage && <AnnouncementComposer classId={classId} />}
         </div>
         {announcements.length === 0 ? (
           <p className="text-sm text-muted">No announcements yet.</p>
@@ -108,14 +124,14 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Class discussion</h2>
-        <DiscussionThread classId={classId} threads={threads} meId={user.id} canModerate />
+        <h2 className="dz-section-title">Class discussion</h2>
+        <DiscussionThread classId={classId} threads={threads} meId={user.id} canModerate={canManage || admin} />
       </section>
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Roster</h2>
-          <RosterImport classId={classId} />
+          <h2 className="dz-section-title">Roster</h2>
+          {canManage && <RosterImport classId={classId} />}
         </div>
         {roster(classId).length === 0 ? (
           <p className="text-sm text-muted">Nobody has joined yet. Share the join code above, or import a roster.</p>
@@ -131,10 +147,12 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Assignments</h2>
-        <div className="dz-card space-y-4 p-5">
-          <AssignForm classId={classId} assignable={assignable} canRotate />
-        </div>
+        <h2 className="dz-section-title">Assignments</h2>
+        {canManage && (
+          <div className="dz-card space-y-4 p-5">
+            <AssignForm classId={classId} assignable={assignable} canRotate />
+          </div>
+        )}
 
         {assignments.length === 0 ? (
           <p className="text-sm text-muted">Nothing assigned yet.</p>
@@ -161,13 +179,17 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Link
-                      href={`/teacher/assignments/${a.id}` as never}
-                      className="dz-btn text-xs"
-                    >
-                      Grade work
-                    </Link>
-                    <RemoveAssignmentButton classId={classId} moduleId={a.module_id} />
+                    {canManage && (
+                      <>
+                        <Link
+                          href={`/teacher/assignments/${a.id}` as never}
+                          className="dz-btn text-xs"
+                        >
+                          Grade work
+                        </Link>
+                        <RemoveAssignmentButton classId={classId} moduleId={a.module_id} />
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -178,7 +200,7 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
 
       {atRisk.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold">Needs attention</h2>
+          <h2 className="dz-section-title">Needs attention</h2>
           <p className="text-sm text-muted">
             Students with an assigned module past its due date and not yet passed.
           </p>
@@ -194,7 +216,7 @@ export default async function ClassDetailPage(props: PageProps<'/teacher/classes
 
       <section className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-semibold">Gradebook</h2>
+          <h2 className="dz-section-title">Gradebook</h2>
           <span className="dz-label">
             {gb.modules.length} {gb.modules.length === 1 ? 'module' : 'modules'} assigned
           </span>

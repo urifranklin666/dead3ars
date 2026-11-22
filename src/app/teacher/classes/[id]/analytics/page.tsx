@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { classAnalytics, gradebook, ownedClass, roster } from '@/lib/classroom';
+import { classAnalytics, classById, gradebook, ownedClass, roster } from '@/lib/classroom';
 import { loadModules } from '@/lib/curriculum';
 import { classHref } from '@/lib/routes';
-import { isStaff, viewer } from '@/lib/session';
+import { isAdmin, isStaff, viewer } from '@/lib/session';
 import { percent } from '@/lib/format';
 
 export const metadata: Metadata = { title: 'Class analytics — dead3ars' };
@@ -21,7 +21,7 @@ export default async function ClassAnalyticsPage(props: PageProps<'/teacher/clas
   const classId = Number(id);
   if (!Number.isInteger(classId)) notFound();
 
-  const klass = ownedClass(user.id, classId);
+  const klass = isAdmin(user) ? classById(classId) : ownedClass(user.id, classId);
   if (!klass) notFound();
 
   const gb = gradebook(classId);
@@ -95,9 +95,8 @@ export default async function ClassAnalyticsPage(props: PageProps<'/teacher/clas
                       <span className="font-medium">
                         {m ? `${String(m.order).padStart(2, '0')} · ${m.title}` : a.module_id}
                       </span>
-                      <span className="mt-1 block h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-panel-2">
+                      <span className="mt-2 block dz-progress max-w-xs">
                         <span
-                          className="block h-full bg-accent-2"
                           style={{ width: `${Math.round(passRate * 100)}%` }}
                         />
                       </span>
@@ -124,7 +123,7 @@ export default async function ClassAnalyticsPage(props: PageProps<'/teacher/clas
       )}
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Students who need attention</h2>
+        <h2 className="dz-section-title">Students who need attention</h2>
         {needsAttention.length === 0 ? (
           <p className="text-sm text-muted">
             Nobody is past a due date with work outstanding. {gb.rows.length === 0 && 'Nobody has joined yet.'}

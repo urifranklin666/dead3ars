@@ -5,6 +5,7 @@ import { RoleControl } from '@/components/RoleControl';
 import { listUsers } from '@/lib/db';
 import { allClasses, instanceStats } from '@/lib/classroom';
 import { listAudit } from '@/lib/audit';
+import { classHref } from '@/lib/routes';
 import { isAdmin, viewer } from '@/lib/session';
 import { shortDate } from '@/lib/format';
 
@@ -27,7 +28,7 @@ export default async function AdminPage() {
     ['Teachers', stats.users.teacher ?? 0],
     ['Admins', stats.users.admin ?? 0],
     ['Classes', stats.classes],
-    ['Enrolments', stats.enrollments],
+    ['Enrollments', stats.enrollments],
     ['Assignments', stats.assignments],
     ['Submissions', stats.submissions],
     ['Grades', stats.grades],
@@ -56,7 +57,7 @@ export default async function AdminPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Accounts</h2>
+        <h2 className="dz-section-title">Accounts</h2>
         <div className="dz-card overflow-x-auto" tabIndex={0} role="group" aria-label="Accounts">
           <table className="w-full text-sm">
             <thead>
@@ -87,7 +88,7 @@ export default async function AdminPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Classes</h2>
+        <h2 className="dz-section-title">Classes</h2>
         {classes.length === 0 ? (
           <p className="text-sm text-muted">No classes on this instance yet.</p>
         ) : (
@@ -106,7 +107,7 @@ export default async function AdminPage() {
                 {classes.map((c) => (
                   <tr key={c.id} className="border-b border-line/60 last:border-0">
                     <td className="px-4 py-2.5">
-                      <Link href={`/teacher/classes/${c.id}` as never} className="font-medium hover:text-accent">
+                      <Link href={classHref(c.id)} className="font-medium hover:text-accent">
                         {c.name}
                       </Link>
                       <span className="block text-xs text-muted">{shortDate(c.created_at)}</span>
@@ -125,7 +126,7 @@ export default async function AdminPage() {
 
       <section className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-semibold">Audit trail</h2>
+          <h2 className="dz-section-title">Audit trail</h2>
           <span className="dz-label">latest {audit.rows.length} of {audit.total}</span>
         </div>
         {audit.rows.length === 0 ? (

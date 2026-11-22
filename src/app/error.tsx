@@ -13,9 +13,9 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
   }, [error]);
 
   return (
-    <div className="mx-auto max-w-lg space-y-4 py-16 text-center">
-      <p className="dz-label">Something broke</p>
-      <h1 className="text-2xl font-bold tracking-tight">This page could not be rendered</h1>
+    <div className="mx-auto max-w-lg space-y-4 py-20 text-center">
+      <p className="dz-label text-danger">Something broke</p>
+      <h1 className="text-3xl font-bold tracking-tight">This page could not be rendered</h1>
       <p className="text-sm leading-relaxed text-muted">
         The failure was logged on the server. You can retry, or go back to your dashboard.
       </p>

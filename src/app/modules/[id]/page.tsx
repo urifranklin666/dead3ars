@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { LabWorkspace } from '@/components/LabWorkspace';
 import { Markdown } from '@/components/Markdown';
 import { Notes } from '@/components/Notes';
 import { ProgressControls } from '@/components/ProgressControls';
@@ -8,9 +9,10 @@ import { Quiz } from '@/components/Quiz';
 import { TierBadge } from '@/components/TierBadge';
 import { FREE_MODULE_LIMIT, getModule, loadModules } from '@/lib/curriculum';
 import { publicModule } from '@/lib/api';
+import { getScenario } from '@/lib/labs';
 import { getNote, progressMap } from '@/lib/progress';
 import { workForStudent } from '@/lib/classroom';
-import { moduleHref } from '@/lib/routes';
+import { assignmentHref, moduleHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 
 export function generateStaticParams() {
@@ -49,6 +51,7 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
 
   const prev = modules[index - 1];
   const next = modules[index + 1];
+  const scenario = getScenario(mod.id);
 
   return (
     <article className="space-y-10">
@@ -65,44 +68,70 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
           <TierBadge tier={mod.tier} />
           <span className="dz-badge dz-badge-neutral">{mod.minutes} min</span>
           {progress[mod.id] && (
-            <span className="dz-badge dz-badge-neutral">in progress</span>
+            <span className="dz-badge dz-badge-neutral">{progress[mod.id]}</span>
           )}
         </div>
 
-        <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+        <h1 className="max-w-4xl text-3xl font-bold leading-tight tracking-[-0.03em] sm:text-4xl lg:text-5xl">
           {mod.title}
         </h1>
         <p className="max-w-2xl leading-relaxed text-muted">{mod.summary}</p>
 
         <div className="flex flex-wrap gap-2 font-mono text-xs">
           {mod.mitre.map((t) => (
-            <span key={t} className="rounded border border-line bg-panel-2 px-2 py-0.5">
+            <span
+              key={t}
+              className="rounded-md border border-line bg-panel-2/70 px-2 py-0.5 text-muted"
+            >
               {t}
             </span>
           ))}
           {mod.owasp.map((o) => (
-            <span key={o} className="rounded border border-accent/40 px-2 py-0.5 text-accent">
+            <span
+              key={o}
+              className="rounded-md border border-accent/40 bg-accent/5 px-2 py-0.5 text-accent"
+            >
               {o}
             </span>
           ))}
           {mod.cwe.map((c) => (
-            <span key={c} className="rounded border border-line px-2 py-0.5 text-muted">
+            <span key={c} className="rounded-md border border-line px-2 py-0.5 text-muted">
               {c}
             </span>
           ))}
         </div>
+
+        {!locked && (
+          <nav className="flex flex-wrap gap-2 pt-1" aria-label="On this page">
+            {[
+              ['#lab', 'Lab'],
+              ['#ethics', 'Ethics'],
+              ['#defenses', 'Controls'],
+              ['#notes', 'Notes'],
+              ['#assessment', 'Assessment'],
+            ].map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="dz-badge dz-badge-neutral px-2.5 py-1 hover:border-accent hover:text-accent"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+        )}
       </header>
 
       {locked ? (
-        <section className="dz-card space-y-3 p-6">
-          <p className="dz-label">Locked</p>
-          <p className="leading-relaxed">
-            This module is beyond the open preview. Enrol or sign in to read it, run its lab,
+        <section className="dz-card dz-card-accent space-y-4 p-6 sm:p-8">
+          <p className="dz-label text-accent">Locked module</p>
+          <p className="max-w-xl leading-relaxed">
+            This module is beyond the open preview. Enroll or sign in to read it, run its lab,
             and have your progress recorded.
           </p>
-          <div className="flex gap-3 pt-1">
+          <div className="flex flex-wrap gap-3 pt-1">
             <Link href="/register" className="dz-btn dz-btn-primary">
-              Enrol
+              Enroll
             </Link>
             <Link href="/login" className="dz-btn">
               Sign in
@@ -148,6 +177,13 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
           )}
 
           <Section id="lab" title="Lab" tone="accent">
+            {scenario && user && (
+              <LabWorkspace
+                moduleId={mod.id}
+                scenarioTitle={scenario.title}
+                flags={scenario.flags}
+              />
+            )}
             <p className="dz-label">
               {mod.lab.environment} environment
             </p>
@@ -239,8 +275,8 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
                 {myWork.map((w) => (
                   <li key={w.assignment_id}>
                     <Link
-                      href={`/assignments/${w.assignment_id}` as never}
-                      className="dz-card flex flex-wrap items-center justify-between gap-3 p-4 hover:border-accent"
+                      href={assignmentHref(w.assignment_id)}
+                      className="dz-card dz-card-hover flex flex-wrap items-center justify-between gap-3 p-4"
                     >
                       <span>
                         <span className="block font-medium">{w.class_name}</span>
@@ -299,7 +335,7 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
 
       <nav className="flex flex-wrap items-stretch gap-3 border-t border-line pt-6" aria-label="Module navigation">
         {prev ? (
-          <Link href={moduleHref(prev.id)} className="dz-card flex-1 p-4 hover:border-accent">
+          <Link href={moduleHref(prev.id)} className="dz-card dz-card-hover flex-1 p-4">
             <span className="dz-label">← Previous</span>
             <span className="mt-1 block font-medium">{prev.title}</span>
           </Link>
@@ -307,7 +343,7 @@ export default async function ModulePage(props: PageProps<'/modules/[id]'>) {
           <span className="flex-1" />
         )}
         {next ? (
-          <Link href={moduleHref(next.id)} className="dz-card flex-1 p-4 text-right hover:border-accent">
+          <Link href={moduleHref(next.id)} className="dz-card dz-card-hover flex-1 p-4 text-right">
             <span className="dz-label">Next →</span>
             <span className="mt-1 block font-medium">{next.title}</span>
           </Link>
@@ -327,6 +363,14 @@ const TONE_BORDER: Record<string, string> = {
   default: 'border-line',
 };
 
+const TONE_TEXT: Record<string, string> = {
+  danger: 'text-danger',
+  'accent-2': 'text-accent-2',
+  accent: 'text-accent',
+  warn: 'text-warn',
+  default: 'text-muted',
+};
+
 function Section({
   title,
   tone = 'default',
@@ -339,8 +383,13 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className={`dz-card scroll-mt-20 p-5 ${TONE_BORDER[tone]}`}>
-      <h2 className="mb-3 font-mono text-sm uppercase tracking-widest text-muted">{title}</h2>
+    <section id={id} className={`dz-card scroll-mt-24 p-5 sm:p-6 ${TONE_BORDER[tone]}`}>
+      <h2
+        className={`mb-3 flex items-center gap-2 font-mono text-sm uppercase tracking-widest ${TONE_TEXT[tone]}`}
+      >
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_8px_currentColor]" />
+        {title}
+      </h2>
       {children}
     </section>
   );

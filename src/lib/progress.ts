@@ -129,6 +129,27 @@ export function cohort(): CohortRow[] {
   return rows;
 }
 
+/* Per-module cohort counts. Counting rows by module is the only honest way to
+ * answer "how many have started module 7": a student's total number of started
+ * modules says nothing about *which* modules they are. */
+export interface CohortModuleStat {
+  module_id: string;
+  started: number;
+  passed: number;
+}
+
+export function cohortModuleStats(): CohortModuleStat[] {
+  return db()
+    .prepare(
+      `SELECT module_id,
+              COUNT(*) AS started,
+              SUM(CASE WHEN status = 'assessment-passed' THEN 1 ELSE 0 END) AS passed
+         FROM progress
+        GROUP BY module_id`,
+    )
+    .all() as unknown as CohortModuleStat[];
+}
+
 export function studentDetail(user: SessionUser) {
   return {
     user,

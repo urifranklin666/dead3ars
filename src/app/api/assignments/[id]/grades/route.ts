@@ -89,6 +89,15 @@ export async function DELETE(req: Request, ctx: RouteContext<'/api/assignments/[
     const studentId = Number(raw);
     if (!Number.isInteger(studentId)) return fail('Bad student id.', 400);
     if (!deleteGrade(assignmentId, studentId)) return fail('That student has no grade to remove.', 404);
+    audit({
+      actorId: teacher.id,
+      actorEmail: teacher.email,
+      action: 'grade.delete',
+      targetType: 'assignment',
+      targetId: assignmentId,
+      detail: `student ${studentId}`,
+      ip: clientIp(req),
+    });
 
     return ok({ removed: studentId, assignment: assignmentById(assignmentId) });
   } catch (e) {

@@ -11,5 +11,8 @@ npm-debug.log*
 docs
 *.md
 !README.md
+.env
+.env.*
+compose.yaml
 # ...but the module markdown is read from disk at runtime and must ship.
 !content/modules/*.md

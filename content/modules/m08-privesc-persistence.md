@@ -31,32 +31,29 @@ defenses:
   - Network segmentation and least privilege, so a compromised host has no reachable neighbour by default
   - Restricting where privileged credentials may be used, and treating any credential dump as a critical incident
 lab:
-  name: "Escalate, persist, and then hunt yourself"
+  name: "Escalate privilege on Linux, then hunt hidden persistence"
   environment: sandbox
   brief: >-
-    On a purpose-built lab VM with deliberately weak permissions, you will find an escalation
-    path, establish persistence, then switch to the defender's role and enumerate the
-    persistence you created from a cold start, using only what a defender could see.
+    Launch your in-browser KVM VM as the unprivileged 'student' user. You will confirm your
+    foothold, enumerate sudo misconfigurations to escalate to root, and then switch to
+    defender mode to hunt down a simulated persistence mechanism planted in the host's
+    scheduled tasks.
   steps:
-    - do: "Take a snapshot of the lab VM before you begin, and confirm you can restore it."
-      expect: "A restore you have actually performed, not merely a snapshot you took."
-    - do: "Enumerate the host for escalation opportunities: weak service permissions, unquoted service paths, or a writable directory on the executable search path."
-      expect: "A list of candidate weaknesses, each with the reason it is a candidate."
-    - do: "Exploit one candidate to gain elevated rights. Record the exact commands and the evidence of the new privilege level."
-      expect: "Proof of elevation, and a note of which single misconfiguration enabled it."
-    - do: "Establish persistence using a logon autostart mechanism. Note where it lives and what would survive a reboot."
-      expect: "A persistence mechanism you can describe precisely, with its reboot survival noted."
-    - do: "Now switch roles. Without using your own notes, enumerate the host cold and find the persistence you planted."
-      expect: "You locate it using only standard host review - this is how a defender finds it."
-    - do: "Reboot. Confirm the persistence took effect, then remove it and confirm it is gone."
-      expect: "The full lifecycle observed: planted, survivable, found, removed."
+    - do: "Click 'Launch Lab VM' above, open the terminal, and read ~/README-LAB.txt and /home/student/user.flag."
+      expect: "You confirm your initial foothold as student and submit the [user] flag."
+    - do: "Enumerate privilege-escalation paths with 'sudo -l' and inspect the permissions on any script you are allowed to run as root."
+      expect: "You find student can run /opt/ops/healthcheck.sh as root without a password — and the file is world-writable."
+    - do: "Abuse the writable root-executed script to spawn a root shell (or read /root/root.flag) and submit the [root] flag."
+      expect: "You elevate to uid=0(root) and capture FLAG{root_...}."
+    - do: "Switch to defender mode: enumerate scheduled tasks under /etc/cron.d/ to locate the simulated persistence artifact (sys-telemetry-sync) and extract HUNT_FLAG."
+      expect: "You locate /etc/cron.d/sys-telemetry-sync and submit the [hunt] flag."
+    - do: "Note in your module notes the two controls that would have prevented this chain: root-owned non-writable sudo targets (chmod 755, chown root:root) and cron integrity monitoring."
+      expect: "Both root-cause fixes recorded."
   success:
-    - A snapshot restored before the exercise began
-    - One privilege-escalation path exploited, with the enabling misconfiguration named
-    - Persistence planted, discovered from a cold start, and removed with confirmation
+    - Confirmed foothold ([user]), escalated to root via sudo misconfiguration ([root]), and hunted cron persistence ([hunt])
+    - Documented the permissions and monitoring controls that close the chain
   cleanup:
-    - "Remove every persistence mechanism you created, or restore the snapshot. Verify the removal."
-    - "The lab VM is the only machine touched."
+    - "Click 'Reset VM' to restore a clean snapshot, or 'Stop VM' when finished."
 ethics:
   boundary: >-
     Privilege escalation and persistence are the techniques that turn a contained incident

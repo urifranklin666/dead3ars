@@ -119,7 +119,7 @@ assessment:
     explain: >-
       This is prompt injection in a tool-using agent, and it is qualitatively new: the agent
       holds real permissions, so untrusted content it merely reads can become an action it
-      takes. The defence is architectural - least-privilege tools, explicit confirmation for
+      takes. The defense is architectural - least-privilege tools, explicit confirmation for
       consequential actions, and treating all fetched content as untrusted input.
   - q: "In the OWASP Top 10, which category covers weaknesses in confirming a user's identity and in session handling, such as CWE-287?"
     options:
@@ -195,7 +195,7 @@ Agentic LLM systems add a genuinely new attack surface, and this course will rev
 in a later module. The core issue is *authority*: an agent reads untrusted content and holds
 real permissions, so an instruction hidden in that content can become an action the agent
 takes on the attacker's behalf. This is not a renamed classic vulnerability; the trust
-boundary has moved. Defences are architectural — least-privilege tools, human confirmation
+boundary has moved. Defenses are architectural — least-privilege tools, human confirmation
 for consequential steps, and treating all ingested content as untrusted.
 
 ## Key concepts

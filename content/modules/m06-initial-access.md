@@ -28,31 +28,30 @@ defenses:
   - Retiring unnecessary internet-facing services and putting the rest behind patched, authenticated gateways
   - Treating scanning of edge devices as an alertable signal rather than a monthly curiosity
 lab:
-  name: "Simulate a phishing message against yourself"
+  name: "Triage a phishing email and deobfuscate a malicious dropper"
   environment: sandbox
   brief: >-
-    You will build a realistic phishing simulation and deliver it to an email address you
-    own, tracking which elements make it convincing. Then you will convert it into a
-    defensive exercise: write the user-awareness and technical controls that would have
-    stopped it. You will not send anything to any other person.
+    Launch your in-browser KVM VM to triage a realistic phishing email and attached shell
+    dropper stored in /opt/triage/. You will inspect raw email headers for spoofing and
+    campaign indicators, safely deobfuscate the encoded C2 check-in URL without running it,
+    and document the awareness and technical controls that stop initial access.
   steps:
-    - do: "Choose a pretext that fits a plausible target - a delivery notice, a shared-document request, or a password-expiry warning."
-      expect: "A one-line pretext and the emotion it exploits."
-    - do: "Compose the message. Note which technical signals a mail gateway could inspect: the sending domain, SPF/DKIM/DMARC alignment, link destination, and attachment type."
-      expect: "A written list of the observable signals present in your own message."
-    - do: "Send it to an address you control, and only that address. Inspect the raw headers of what arrives."
-      expect: "You can see the authentication results the receiving server attached."
-    - do: "Now switch sides: write the user-awareness guidance and the two technical controls that would most reduce the chance this message succeeds."
-      expect: "Awareness guidance plus controls such as phishing-resistant MFA or link isolation."
-    - do: "Examine how a public-facing service is attacked, using documentation only: list the exposed interface classes on a typical edge device and why each must be reachable."
-      expect: "An explanation that these services are internet-exposed by necessity, not by mistake."
+    - do: "Click 'Launch Lab VM' above, open the terminal, and inspect /opt/triage/phish.eml and ~/README-LAB.txt."
+      expect: "You see the raw email headers (From, Return-Path, Subject, X-Campaign-ID) and pretext."
+    - do: "Identify the lookalike sender domain (payr0ll-update.invalid) and Return-Path mismatch, then extract the X-Campaign-ID value for the [header] flag."
+      expect: "You capture FLAG{header_...} and note why SPF/DKIM/DMARC alignment would flag this message."
+    - do: "Inspect /opt/triage/invoice_2026.sh without executing it. Locate the hex-encoded ENC string."
+      expect: "You identify the obfuscated payload variable inside the script."
+    - do: "Decode the hex string safely using python3 (bytes.fromhex(ENC).decode()) to reveal the C2 URL and capture the [ioc] flag."
+      expect: "You recover your unique FLAG{ioc_...} and submit both flags above."
+    - do: "In your notes, pair one user-awareness cue with two technical controls (such as phishing-resistant MFA and attachment sandboxing) that would have stopped this lure."
+      expect: "Concrete preventive and detective controls recorded."
   success:
-    - A phishing simulation delivered only to an address you control, with headers inspected
-    - A documented list of the technical signals present in your own message
-    - Written controls that would have stopped it, split into awareness and technical
+    - Analyzed raw phishing headers and captured the [header] flag
+    - Safely deobfuscated the dropper IOC without executing it and captured the [ioc] flag
+    - Documented awareness and technical controls for initial access
   cleanup:
-    - "Delete the lab mailbox artifacts. Send no further messages."
-    - "If your provider has a separate mailbox for testing, remove anything your simulation created."
+    - "Click 'Stop VM' when finished. All triage artifacts stay confined inside your ephemeral VM."
 ethics:
   boundary: >-
     This lab sends exactly one message, to an address you control, with no third party

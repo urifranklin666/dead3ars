@@ -23,7 +23,7 @@ export default async function ClassesPage() {
           <p className="dz-label">Teacher · {user.name}</p>
           <h1 className="text-3xl font-bold tracking-tight">Classes</h1>
           <p className="max-w-2xl leading-relaxed text-muted">
-            A class is a roster you enrol students into with a join code. Assign modules to a
+            A class is a roster you enroll students into with a join code. Assign modules to a
             class to put them on every member&rsquo;s dashboard, with a due date if you like.
           </p>
         </div>
@@ -35,17 +35,17 @@ export default async function ClassesPage() {
       <CreateClassForm />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Your classes</h2>
+        <h2 className="dz-section-title">Your classes</h2>
         {classes.length === 0 ? (
-          <div className="dz-card p-6 text-sm text-muted">
+          <div className="dz-empty">
             No classes yet. Create one above, then hand its join code to your students.
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {classes.map((c) => (
-              <Link key={c.id} href={classHref(c.id)} className="dz-card block p-5 hover:border-accent">
+              <Link key={c.id} href={classHref(c.id)} className="dz-card dz-card-hover block p-5">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-semibold">{c.name}</span>
+                  <span className="font-semibold tracking-tight">{c.name}</span>
                   <span className="font-mono text-xs text-accent">{c.join_code}</span>
                 </div>
                 <p className="mt-2 text-sm text-muted">

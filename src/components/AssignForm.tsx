@@ -62,7 +62,7 @@ export function AssignForm({
       <label className="min-w-[16rem] flex-1">
         <span className="dz-label">Module</span>
         <select
-          className="dz-input mt-1.5"
+          className="dz-select mt-1.5 w-full"
           value={moduleId}
           onChange={(e) => setModuleId(e.target.value)}
           disabled={!canRotate}
