@@ -45,7 +45,7 @@ export function ModuleList({
                 locked ? 'opacity-85' : ''
               }`}
             >
-              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line bg-bg/60 font-mono text-xs text-muted">
+              <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-md bg-accent/10 font-mono text-xs text-accent">
                 {String(m.order).padStart(2, '0')}
               </span>
 
@@ -82,14 +82,6 @@ export function ModuleList({
                 </span>
               </span>
 
-              <span
-                aria-hidden
-                className={`ml-auto pt-1 font-mono text-sm transition-transform ${
-                  locked ? 'text-muted' : 'text-accent'
-                }`}
-              >
-                {locked ? '🔒' : '→'}
-              </span>
             </Link>
           </li>
         );

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "dead3ars — offensive security, taught defensively",
   description:
-    "A twelve-module course in modern attack technique and its defense, taught entirely inside labs the student owns.",
+    "A hands-on cybersecurity course covering attack techniques, defensive controls, and detection in isolated labs.",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

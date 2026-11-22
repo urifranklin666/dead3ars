@@ -24,11 +24,10 @@ export default async function ModulesPage() {
   return (
     <div className="space-y-12">
       <header className="space-y-4">
-        <p className="dz-label flex items-center gap-2">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_10px_#ff3b4e]" />
+        <p className="course-kicker">
           {modules.length} modules · {minutes} minutes
         </p>
-        <h1 className="text-4xl font-bold tracking-[-0.03em]">Syllabus</h1>
+        <h1 className="text-5xl font-bold tracking-[-0.055em] sm:text-6xl">Syllabus</h1>
         <p className="max-w-2xl leading-relaxed text-muted">
           Work through them in order. Each module states its own ethics boundary, gives the
           attacker&rsquo;s view and the defender&rsquo;s view of the same technique, and ends
@@ -52,6 +51,15 @@ export default async function ModulesPage() {
           </p>
         )}
       </header>
+
+      <p className="rounded-xl border border-line bg-panel px-4 py-3 text-sm leading-relaxed text-muted">
+        Codes like <span className="font-mono text-ink">T1059</span> are technique IDs in
+        MITRE ATT&amp;CK, a catalog of attacker behaviors. Use them to look up what a technique
+        means and how defenders can detect or mitigate it.{' '}
+        <a href="https://attack.mitre.org/techniques/T1059/" className="dz-link">
+          See an example on MITRE ATT&amp;CK
+        </a>.
+      </p>
 
       <nav
         className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-panel/60 p-2"
@@ -81,7 +89,7 @@ export default async function ModulesPage() {
               <span className={`dz-badge dz-badge-${tier}`}>{tier}</span>
               <p className="text-sm text-muted">{TIER_BLURB[tier]}</p>
             </div>
-            <ModuleList modules={inTier} progress={progress} authed={user !== null} />
+            <ModuleList modules={inTier} progress={progress} authed={user !== null} showTier={false} />
           </section>
         );
       })}

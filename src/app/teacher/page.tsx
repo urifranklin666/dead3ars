@@ -44,7 +44,7 @@ export default async function TeacherPage() {
         <div className="flex items-center gap-4">
           <span
             aria-hidden
-            className="grid h-14 w-14 place-items-center rounded-2xl border border-accent/30 bg-accent/10 font-mono text-xl font-bold text-accent shadow-[0_0_30px_-10px_#ff3b4e]"
+            className="grid h-14 w-14 place-items-center rounded-2xl border border-accent/30 bg-accent/10 font-mono text-xl font-bold text-accent shadow-[0_0_30px_-10px_#a1bfff]"
           >
             {user.name.slice(0, 1).toUpperCase()}
           </span>
@@ -60,6 +60,9 @@ export default async function TeacherPage() {
         <div className="flex flex-wrap gap-2">
           <Link href="/teacher/labs" className="dz-btn dz-btn-primary">
             Live Labs
+          </Link>
+          <Link href="/teacher/solutions" className="dz-btn">
+            Solutions &amp; Key
           </Link>
           <Link
             href={user.role === 'admin' ? '/admin' : '/teacher/classes'}

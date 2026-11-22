@@ -1,20 +1,16 @@
 @import "tailwindcss";
 
-/* dead3ars is an operator console: near-black surfaces, crimson signal, and
-   high-contrast type where it counts. Tiers and severity are the only things
-   allowed to shout. */
-
 @theme inline {
-  --color-bg: #08070a;
-  --color-panel: #110f14;
-  --color-panel-2: #18141b;
-  --color-line: #2c2530;
-  --color-ink: #f6eff2;
-  --color-muted: #a89ea8;
-  --color-accent: #ff3b4e;
-  --color-accent-2: #5ee0a8;
-  --color-warn: #f6bb46;
-  --color-danger: #ff6b81;
+  --color-bg: #090e1b;
+  --color-panel: #10192c;
+  --color-panel-2: #17233a;
+  --color-line: #273754;
+  --color-ink: #f4f6ff;
+  --color-muted: #a7b5cd;
+  --color-accent: #a1bfff;
+  --color-accent-2: #72dfbe;
+  --color-warn: #f6cb77;
+  --color-danger: #ff869d;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
 }
 
@@ -26,37 +22,18 @@ html {
 body {
   min-height: 100%;
   background-color: var(--color-bg);
-  background-image:
-    radial-gradient(1100px 620px at 12% -12%, rgba(255, 59, 78, 0.14), transparent 62%),
-    radial-gradient(900px 520px at 96% -4%, rgba(255, 59, 78, 0.06), transparent 58%),
-    linear-gradient(180deg, #0b0910 0%, #08070a 48%, #070609 100%);
-  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* A faint console grid, kept behind everything and well below body text. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.017) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.017) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 20%, transparent 78%);
-}
-
 ::selection {
-  background: rgba(255, 59, 78, 0.35);
+  background: rgba(111, 152, 255, 0.35);
   color: #fff;
 }
 
 * {
-  scrollbar-color: #3a303c transparent;
+  scrollbar-color: #344972 transparent;
   scrollbar-width: thin;
 }
 
@@ -96,7 +73,7 @@ h3 {
 
 .dz-label {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-muted);
@@ -125,20 +102,20 @@ h3 {
   transform: translateY(-2px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 24px 48px -30px rgba(255, 59, 78, 0.55);
+    0 24px 48px -30px rgba(111, 152, 255, 0.55);
 }
 
 .dz-card-accent {
   border-color: color-mix(in srgb, var(--color-accent) 42%, transparent);
   background:
-    radial-gradient(720px 240px at 0% 0%, rgba(255, 59, 78, 0.13), transparent 60%),
+    radial-gradient(720px 240px at 0% 0%, rgba(111, 152, 255, 0.13), transparent 60%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 42%),
     var(--color-panel);
 }
 
 .dz-input {
   width: 100%;
-  background: #0b090d;
+  background: #0c1425;
   border: 1px solid var(--color-line);
   border-radius: 0.625rem;
   padding: 0.62rem 0.8rem;
@@ -152,12 +129,12 @@ h3 {
   color: color-mix(in srgb, var(--color-muted) 70%, transparent);
 }
 .dz-input:hover:not(:disabled) {
-  border-color: #413645;
+  border-color: #43577a;
 }
 .dz-input:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(255, 59, 78, 0.16);
+  box-shadow: 0 0 0 3px rgba(111, 152, 255, 0.16);
 }
 .dz-input:disabled {
   opacity: 0.55;
@@ -168,7 +145,7 @@ h3 {
    would stretch it inside a flex row — but it keeps the same focus ring. */
 .dz-select {
   appearance: none;
-  background-color: #0b090d;
+  background-color: #0c1425;
   border: 1px solid var(--color-line);
   border-radius: 0.625rem;
   padding: 0.55rem 2rem 0.55rem 0.8rem;
@@ -183,12 +160,12 @@ h3 {
     box-shadow 0.14s ease;
 }
 .dz-select:hover:not(:disabled) {
-  border-color: #413645;
+  border-color: #43577a;
 }
 .dz-select:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(255, 59, 78, 0.16);
+  box-shadow: 0 0 0 3px rgba(111, 152, 255, 0.16);
 }
 .dz-select:disabled {
   opacity: 0.5;
@@ -207,7 +184,7 @@ h3 {
   transition: color 0.14s ease;
 }
 .dz-link:hover {
-  color: #ff7583;
+  color: #d0dfff;
 }
 
 .dz-btn {
@@ -221,7 +198,7 @@ h3 {
   font-weight: 600;
   line-height: 1.2;
   border: 1px solid var(--color-line);
-  background: linear-gradient(180deg, #1d1821, #151218);
+  background: linear-gradient(180deg, #1a2944, #131f34);
   color: var(--color-ink);
   cursor: pointer;
   white-space: nowrap;
@@ -244,22 +221,16 @@ h3 {
   cursor: not-allowed;
 }
 .dz-btn-primary {
-  background-color: var(--color-accent);
-  background-image: linear-gradient(180deg, #ff5263, #df1732);
-  border-color: #ff6070;
-  color: #1b0308;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 10px 28px -14px rgba(255, 59, 78, 0.9);
+  background: #3d63ed;
+  border-color: #6383fb;
+  color: #fff;
 }
+
 .dz-btn-primary:hover:not(:disabled) {
-  background-color: #ff5263;
-  background-image: linear-gradient(180deg, #ff6a79, #f01d39);
-  border-color: #ff8491;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    0 14px 34px -14px rgba(255, 59, 78, 1);
+  background: #3157db;
+  border-color: #a1bfff;
 }
+
 .dz-btn-danger {
   background: rgba(255, 107, 129, 0.08);
   border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
@@ -285,8 +256,8 @@ h3 {
 }
 .dz-nav-link[aria-current="page"] {
   color: var(--color-ink);
-  background: rgba(255, 59, 78, 0.13);
-  box-shadow: inset 0 0 0 1px rgba(255, 59, 78, 0.22);
+  background: rgba(111, 152, 255, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(111, 152, 255, 0.22);
 }
 
 .dz-section-title {
@@ -304,7 +275,7 @@ h3 {
   height: 1.1em;
   border-radius: 999px;
   background: var(--color-accent);
-  box-shadow: 0 0 14px rgba(255, 59, 78, 0.65);
+  box-shadow: 0 0 14px rgba(111, 152, 255, 0.65);
 }
 
 .dz-progress {
@@ -318,8 +289,8 @@ h3 {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #a90f24, var(--color-accent));
-  box-shadow: 0 0 12px rgba(255, 59, 78, 0.55);
+  background: linear-gradient(90deg, #5683ff, var(--color-accent));
+  box-shadow: 0 0 12px rgba(111, 152, 255, 0.55);
   transition: width 0.4s ease;
 }
 
@@ -328,7 +299,7 @@ h3 {
 .dz-badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.16rem 0.48rem;
@@ -355,8 +326,7 @@ h3 {
 .prose-dz h2,
 .prose-dz h3,
 .prose-dz h4 {
-  font-family: var(--font-mono);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   margin-top: 1.9rem;
   color: #fff;
 }
@@ -382,13 +352,13 @@ h3 {
 .prose-dz code {
   font-family: var(--font-mono);
   font-size: 0.875em;
-  background: #120f16;
+  background: #16213a;
   border: 1px solid var(--color-line);
   border-radius: 0.3rem;
   padding: 0.06rem 0.32rem;
 }
 .prose-dz pre {
-  background: #0b090d;
+  background: #0c1425;
   border: 1px solid var(--color-line);
   border-left: 3px solid var(--color-accent);
   border-radius: 0.65rem;
@@ -402,7 +372,7 @@ h3 {
 }
 .prose-dz blockquote {
   border-left: 3px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
-  background: rgba(255, 59, 78, 0.05);
+  background: rgba(111, 152, 255, 0.05);
   border-radius: 0 0.5rem 0.5rem 0;
   padding: 0.7rem 0.95rem;
   color: var(--color-muted);
@@ -439,7 +409,7 @@ main tbody tr {
   transition: background 0.12s ease;
 }
 main tbody tr:hover {
-  background: rgba(255, 59, 78, 0.045);
+  background: rgba(111, 152, 255, 0.045);
 }
 
 /* ---------- auth + empty states ---------- */
@@ -448,7 +418,7 @@ main tbody tr:hover {
   border-top: 2px solid var(--color-accent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 30px 70px -40px rgba(255, 59, 78, 0.45);
+    0 30px 70px -40px rgba(111, 152, 255, 0.45);
 }
 
 .dz-empty {
@@ -470,4 +440,177 @@ main tbody tr:hover {
     transition-duration: 0.001ms !important;
     animation-duration: 0.001ms !important;
   }
+}
+
+.course-hero {
+  display: grid;
+  align-items: center;
+  gap: clamp(1.75rem, 4.5vw, 4rem);
+}
+
+.course-kicker {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.course-hero h1 {
+  margin-top: 1rem;
+  font-size: clamp(2.65rem, 5vw, 4.65rem);
+  font-weight: 700;
+  line-height: 0.99;
+  letter-spacing: -0.065em;
+  text-wrap: pretty;
+}
+
+.course-hero h1 span {
+  display: block;
+  color: var(--color-accent);
+}
+
+.course-intro {
+  max-width: 43ch;
+  margin-block: 1.4rem 1.65rem;
+  color: var(--color-muted);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+.course-hero .dz-btn {
+  min-height: 2.875rem;
+}
+
+.course-art {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 6 / 5;
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  background: var(--color-panel);
+}
+
+.course-art img {
+  object-fit: cover;
+}
+
+.course-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 2rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.875rem;
+  background: var(--color-panel);
+}
+
+.course-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.2rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem);
+}
+
+.course-stats > div:nth-child(even) {
+  border-inline-start: 1px solid var(--color-line);
+}
+
+.course-stats > div:nth-child(n+3) {
+  border-block-start: 1px solid var(--color-line);
+}
+
+.course-stats dt {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.course-stats dd {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.course-section {
+  margin-top: clamp(3rem, 7vw, 5.5rem);
+}
+
+.course-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.3rem;
+}
+
+.course-section-heading h2 {
+  margin-top: 0.2rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.055em;
+  line-height: 1.06;
+}
+
+.course-tracks {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.course-track {
+  --track-tone: var(--color-accent);
+  padding: clamp(1rem, 2.6vw, 1.75rem);
+  border-top: 2px solid var(--track-tone);
+}
+
+.course-track-foundation { --track-tone: var(--color-accent-2); }
+.course-track-advanced { --track-tone: var(--color-warn); }
+
+.course-track-count {
+  color: var(--track-tone);
+  font: 0.8125rem var(--font-mono);
+}
+
+.course-track h3 {
+  margin: 0.5rem 0 0.3rem;
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-transform: capitalize;
+}
+
+.course-track p:last-child {
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+
+.course-boundary {
+  margin-top: 2.5rem;
+  border-inline-start: 2px solid var(--color-warn);
+  background: var(--color-panel);
+  padding: 1rem 1.25rem;
+}
+
+.course-boundary h2 {
+  font-weight: 650;
+}
+
+.course-boundary p {
+  margin-top: 0.25rem;
+  color: var(--color-muted);
+}
+
+@media (min-width: 640px) {
+  .course-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .course-stats > div:nth-child(n+2) { border-inline-start: 1px solid var(--color-line); }
+  .course-stats > div:nth-child(n+3) { border-block-start: 0; }
+  .course-tracks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .course-art { aspect-ratio: 3 / 2; }
+}
+
+@media (min-width: 1024px) {
+  .course-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); }
+  .course-art { aspect-ratio: 6 / 5; }
 }

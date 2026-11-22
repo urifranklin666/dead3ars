@@ -33,17 +33,16 @@ export function Nav({ user }: { user: SessionUser | null }) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/80 bg-bg/80 backdrop-blur-xl">
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-5">
-        <div className="flex h-16 items-center gap-4">
-          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
+        <div className="flex min-h-16 items-center gap-2 sm:gap-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
             <span
               aria-hidden
-              className="grid h-8 w-8 place-items-center rounded-lg border border-accent/40 bg-accent/10 font-mono text-[12px] font-bold text-accent shadow-[0_0_20px_-6px_#ff3b4e] transition-colors group-hover:border-accent"
+              className="grid h-8 w-8 place-items-center rounded-md bg-accent font-mono text-xs font-bold text-bg"
             >
               d3
             </span>
-            <span className="font-mono text-[15px] font-bold tracking-tight">
+            <span className="text-lg font-bold tracking-tight">
               dead<span className="text-accent">3ars</span>
             </span>
           </Link>
@@ -54,7 +53,7 @@ export function Nav({ user }: { user: SessionUser | null }) {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2.5 text-sm">
+          <div className="ml-auto flex items-center gap-1.5 text-sm sm:gap-2.5">
             {user ? (
               <>
                 <span className="hidden items-center gap-2 text-muted sm:flex">
@@ -70,10 +69,10 @@ export function Nav({ user }: { user: SessionUser | null }) {
               </>
             ) : (
               <>
-                <Link href="/login" className="dz-btn text-sm">
+                <Link href="/login" className="dz-btn px-2.5! text-sm sm:px-4!">
                   Sign in
                 </Link>
-                <Link href="/register" className="dz-btn dz-btn-primary text-sm">
+                <Link href="/register" className="dz-btn dz-btn-primary px-2.5! text-sm sm:px-4!">
                   Enroll
                 </Link>
               </>
