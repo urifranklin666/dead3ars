@@ -9,7 +9,7 @@ import { moduleHref, studentHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Grade assignment — dead3ars' };
+export const metadata: Metadata = { title: 'Grade assignment — Blackwire' };
 
 export default async function AssignmentGradingPage(props: PageProps<'/teacher/assignments/[id]'>) {
   const { id } = await props.params;

@@ -7,7 +7,7 @@ import { classHref } from '@/lib/routes';
 import { isAdmin, isStaff, viewer } from '@/lib/session';
 import { percent } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Class analytics — dead3ars' };
+export const metadata: Metadata = { title: 'Class analytics — Blackwire' };
 
 /* Where a class is stuck. For each assigned module: how many have started,
  * passed, the cohort average, and how many are past due without a pass. */

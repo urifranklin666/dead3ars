@@ -24,6 +24,7 @@ export function LabViewer({
   const [nonce, setNonce] = useState(0);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState('');
+  const retryCountRef = useRef(0);
 
   const vncContainerRef = useRef<HTMLDivElement | null>(null);
   const termContainerRef = useRef<HTMLDivElement | null>(null);
@@ -83,13 +84,26 @@ export function LabViewer({
         instance.background = '#090b0f';
 
         instance.addEventListener('connect', () => {
-          if (!cancelled) setStatus('connected');
+          if (!cancelled) {
+            retryCountRef.current = 0;
+            setErrMsg('');
+            setStatus('connected');
+          }
         });
         instance.addEventListener('disconnect', (e: CustomEvent<{ clean?: boolean }>) => {
           if (!cancelled) {
-            setStatus('disconnected');
-            if (!e.detail?.clean) {
-              setErrMsg('VM desktop still booting or disconnected — click Reconnect in a few seconds.');
+            if (!e.detail?.clean && retryCountRef.current < 4) {
+              retryCountRef.current += 1;
+              setStatus('connecting');
+              setErrMsg(`Waiting for VM desktop to finish booting… (attempt ${retryCountRef.current}/4)`);
+              setTimeout(() => {
+                if (!cancelled) setNonce((n) => n + 1);
+              }, 3000);
+            } else {
+              setStatus('disconnected');
+              if (!e.detail?.clean) {
+                setErrMsg('VM desktop disconnected — click Reconnect to resume.');
+              }
             }
           }
         });

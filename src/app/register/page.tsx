@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthForm } from '@/components/AuthForm';
 
-export const metadata: Metadata = { title: 'Enroll — dead3ars' };
+export const metadata: Metadata = { title: 'Enroll — Blackwire' };
 
 export default function RegisterPage() {
   return (

@@ -9,7 +9,7 @@ import { classHref, moduleHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Student — dead3ars' };
+export const metadata: Metadata = { title: 'Student — Blackwire' };
 
 const STATUS_LABEL: Record<Status, string> = {
   engaged: 'engaged',

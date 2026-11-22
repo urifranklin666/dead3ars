@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthForm } from '@/components/AuthForm';
 
-export const metadata: Metadata = { title: 'Sign in — dead3ars' };
+export const metadata: Metadata = { title: 'Sign in — Blackwire' };
 
 export default function LoginPage() {
   /* Surfaced only when the instance is explicitly marked as a demo, so a real

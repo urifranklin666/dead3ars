@@ -6,7 +6,7 @@ import { getScenario } from '@/lib/labs';
 import { moduleHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 
-export const metadata: Metadata = { title: 'Instructor Solutions & Answer Key — dead3ars' };
+export const metadata: Metadata = { title: 'Instructor Solutions & Answer Key — Blackwire' };
 
 const LAB_TEACHING_NOTES: Record<string, string> = {
   'm02-lab-hygiene':

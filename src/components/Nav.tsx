@@ -13,6 +13,7 @@ export function Nav({ user }: { user: SessionUser | null }) {
   const isStudent = user?.role === 'student';
   const isTeacher = user?.role === 'teacher';
   const isAdmin = user?.role === 'admin';
+  const isStaff = isTeacher || isAdmin;
 
   const items: NavItem[] = [
     { href: '/modules', label: 'Syllabus' },
@@ -22,28 +23,30 @@ export function Nav({ user }: { user: SessionUser | null }) {
           { href: '/notes' as Route, label: 'Notes' },
         ]
       : []),
-    ...(isTeacher
+    ...(isStaff
       ? [
           { href: '/teacher' as Route, label: 'Cohort' },
+          { href: '/teacher/labs' as Route, label: 'Live Labs' },
           { href: '/teacher/classes' as Route, label: 'Classes' },
+          { href: '/teacher/solutions' as Route, label: 'Solutions' },
         ]
       : []),
     ...(isAdmin ? [{ href: '/admin' as Route, label: 'Admin' }] : []),
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-bg/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-bg/85 backdrop-blur-xl">
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-5">
         <div className="flex min-h-16 items-center gap-2 sm:gap-4">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
             <span
               aria-hidden
-              className="grid h-8 w-8 place-items-center rounded-md bg-accent font-mono text-xs font-bold text-bg"
+              className="grid h-8 w-8 place-items-center rounded-md bg-accent font-mono text-xs font-extrabold tracking-tighter text-bg shadow-[0_0_24px_-6px_#ff3b4e] transition group-hover:scale-105"
             >
-              d3
+              BW
             </span>
-            <span className="text-lg font-bold tracking-tight">
-              dead<span className="text-accent">3ars</span>
+            <span className="font-mono text-base font-bold uppercase tracking-[0.14em] sm:text-lg">
+              BLACK<span className="text-accent">WIRE</span>
             </span>
           </Link>
 

@@ -7,7 +7,7 @@ import { getRubric, gradeFor, studentAssignment, submissionFor } from '@/lib/cla
 import { moduleHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 
-export const metadata: Metadata = { title: 'Assignment — dead3ars' };
+export const metadata: Metadata = { title: 'Assignment — Blackwire' };
 
 /* A student's single-assignment workspace: the task, the rubric it is graded
  * against, their submission so far, and the teacher's mark and feedback. */

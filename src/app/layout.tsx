@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "dead3ars — offensive security, taught defensively",
+  title: "Blackwire — offensive security, taught defensively",
   description:
-    "A hands-on cybersecurity course covering attack techniques, defensive controls, and detection in isolated labs.",
+    "A live KVM cyber-range and cybersecurity curriculum pairing attack mechanics with defensive controls, detection, and real-time instructor supervision.",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -41,9 +41,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <div className="max-w-xl space-y-2 text-xs leading-relaxed text-muted">
               <p>
                 <strong className="text-ink">Coursework only.</strong> Every technique in
-                this course is practised inside an isolated lab the student owns. None of it
-                may be pointed at a system without prior written authorisation from the
-                system&rsquo;s owner.
+                Blackwire is practised inside an air-gapped, ephemeral KVM virtual machine.
+                None of it may be pointed at a system without prior written authorisation
+                from the system&rsquo;s owner.
               </p>
               <p>
                 Unauthorised access is a criminal offence under the CFAA, the UK Computer
@@ -51,7 +51,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               </p>
             </div>
             <div className="flex shrink-0 flex-col gap-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
-              <span className="text-accent">dead3ars</span>
+              <span className="font-bold text-ink">
+                BLACK<span className="text-accent">WIRE</span>
+              </span>
               <span>offensive security, taught defensively</span>
             </div>
           </div>

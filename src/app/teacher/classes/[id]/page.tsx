@@ -13,7 +13,7 @@ import { classAnalyticsHref, studentHref } from '@/lib/routes';
 import { isAdmin, isStaff, viewer } from '@/lib/session';
 import { percent } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Class — dead3ars' };
+export const metadata: Metadata = { title: 'Class — Blackwire' };
 
 export default async function ClassDetailPage(props: PageProps<'/teacher/classes/[id]'>) {
   const { id } = await props.params;

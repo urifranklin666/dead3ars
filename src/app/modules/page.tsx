@@ -5,7 +5,7 @@ import { loadModules } from '@/lib/curriculum';
 import { progressMap } from '@/lib/progress';
 import { viewer } from '@/lib/session';
 
-export const metadata: Metadata = { title: 'Syllabus — dead3ars' };
+export const metadata: Metadata = { title: 'Syllabus — Blackwire' };
 
 const TIER_BLURB: Record<'foundation' | 'core' | 'advanced', string> = {
   foundation: 'Legal foundation, lab construction, and the current threat landscape.',

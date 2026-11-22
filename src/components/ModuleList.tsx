@@ -53,6 +53,11 @@ export function ModuleList({
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold tracking-tight">{m.title}</span>
                   {showTier && <TierBadge tier={m.tier} />}
+                  {m.lab.environment !== 'read-only' && (
+                    <span className="rounded border border-accent/40 bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">
+                      Live KVM
+                    </span>
+                  )}
                   {status && (
                     <span className={`dz-badge dz-badge-neutral ${STATUS_TONE[status]}`}>
                       {STATUS_LABEL[status]}

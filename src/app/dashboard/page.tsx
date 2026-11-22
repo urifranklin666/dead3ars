@@ -10,7 +10,7 @@ import { assignmentHref, moduleHref, studentClassHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Dashboard — dead3ars' };
+export const metadata: Metadata = { title: 'Dashboard — Blackwire' };
 
 export default async function DashboardPage() {
   const user = await viewer();

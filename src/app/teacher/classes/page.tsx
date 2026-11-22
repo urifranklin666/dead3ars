@@ -7,7 +7,7 @@ import { classHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { shortDate } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Classes — dead3ars' };
+export const metadata: Metadata = { title: 'Classes — Blackwire' };
 
 export default async function ClassesPage() {
   const user = await viewer();

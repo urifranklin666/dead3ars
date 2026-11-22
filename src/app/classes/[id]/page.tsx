@@ -14,7 +14,7 @@ import { loadModules } from '@/lib/curriculum';
 import { assignmentHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 
-export const metadata: Metadata = { title: 'Class — dead3ars' };
+export const metadata: Metadata = { title: 'Class — Blackwire' };
 
 /* A student's view of one class they belong to: what is assigned, what the
  * teacher has announced, and the class discussion. Only members get in. */

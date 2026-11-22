@@ -7,7 +7,7 @@ import { getNote, progressMap } from '@/lib/progress';
 import { moduleHref } from '@/lib/routes';
 import { viewer } from '@/lib/session';
 
-export const metadata: Metadata = { title: 'Notes — dead3ars' };
+export const metadata: Metadata = { title: 'Notes — Blackwire' };
 
 export default async function NotesPage() {
   const user = await viewer();

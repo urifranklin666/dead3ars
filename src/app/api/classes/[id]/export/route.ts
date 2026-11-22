@@ -23,7 +23,7 @@ export async function GET(_req: Request, ctx: RouteContext<'/api/classes/[id]/ex
       status: 200,
       headers: {
         'content-type': 'text/csv; charset=utf-8',
-        'content-disposition': `attachment; filename="dead3ars-${slug}.csv"`,
+        'content-disposition': `attachment; filename="blackwire-${slug}.csv"`,
       },
     });
   } catch (e) {

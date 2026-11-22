@@ -9,7 +9,7 @@ import { classHref } from '@/lib/routes';
 import { isAdmin, viewer } from '@/lib/session';
 import { shortDate } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Admin — dead3ars' };
+export const metadata: Metadata = { title: 'Admin — Blackwire' };
 
 /* Instance oversight: who is on it, what classes exist, and the audit trail.
  * Admin role only — the page and the API both refuse anything else. */

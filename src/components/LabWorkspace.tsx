@@ -164,13 +164,17 @@ export function LabWorkspace({
   };
 
   const capturedSet = new Set(lab?.captured ?? []);
+  const pct = flags.length ? Math.round((capturedSet.size / flags.length) * 100) : 0;
 
   return (
-    <div className="mb-6 space-y-4 rounded-xl border border-accent/30 bg-panel-2/60 p-4 sm:p-5">
+    <div className="mb-6 space-y-4 rounded-xl border border-accent/30 bg-panel-2/60 p-4 shadow-[0_0_40px_-20px_rgba(255,59,78,0.25)] sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="dz-label text-accent">Interactive KVM Cyber Range</p>
-          <p className="mt-0.5 text-sm font-medium">{scenarioTitle}</p>
+          <p className="dz-label flex items-center gap-2 text-accent">
+            <span className={`inline-block h-2 w-2 rounded-full ${lab ? 'animate-pulse bg-accent-2' : 'bg-accent/60'}`} />
+            Blackwire Cyber Range
+          </p>
+          <p className="mt-0.5 text-sm font-semibold">{scenarioTitle}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -232,7 +236,13 @@ export function LabWorkspace({
 
           <div className="grid gap-4 rounded-lg border border-line bg-panel p-4 md:grid-cols-2">
             <div>
-              <p className="dz-label mb-2">Scenario Objectives</p>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="dz-label">Scenario Objectives</p>
+                <span className="font-mono text-[11px] text-muted">{pct}%</span>
+              </div>
+              <div className="dz-progress mb-3">
+                <span style={{ width: `${pct}%` }} />
+              </div>
               <ul className="space-y-1.5 text-xs">
                 {flags.map((f) => {
                   const done = capturedSet.has(f.key);

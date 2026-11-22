@@ -24,7 +24,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await props.params;
   const mod = getModule(id);
-  return { title: mod ? `${mod.title} — dead3ars` : 'Module — dead3ars' };
+  return { title: mod ? `${mod.title} — Blackwire` : 'Module — Blackwire' };
 }
 
 export default async function ModulePage(props: PageProps<'/modules/[id]'>) {

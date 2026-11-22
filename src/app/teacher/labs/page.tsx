@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { TeacherLabMonitor } from '@/components/TeacherLabMonitor';
 import { isStaff, viewer } from '@/lib/session';
 
-export const metadata: Metadata = { title: 'Live Labs — dead3ars' };
+export const metadata: Metadata = { title: 'Live Labs — Blackwire' };
 
 export default async function TeacherLabsPage() {
   const user = await viewer();

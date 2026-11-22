@@ -7,7 +7,7 @@ import { moduleHref, studentHref } from '@/lib/routes';
 import { isStaff, viewer } from '@/lib/session';
 import { percent, shortDate } from '@/lib/format';
 
-export const metadata: Metadata = { title: 'Cohort — dead3ars' };
+export const metadata: Metadata = { title: 'Cohort — Blackwire' };
 
 export default async function TeacherPage() {
   const user = await viewer();

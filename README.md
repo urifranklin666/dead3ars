@@ -1,4 +1,4 @@
-# dead3ars
+# Blackwire
 
 A teacher/student learning environment for modern offensive security — built so that
 every attack technique is taught alongside the control that stops it, the detection that
