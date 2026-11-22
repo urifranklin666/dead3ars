@@ -15,9 +15,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.DZ_PUBLIC_URL || "https://blackwire.deadplug.digital"),
   title: "Blackwire — offensive security, taught defensively",
   description:
     "A live KVM cyber-range and cybersecurity curriculum pairing attack mechanics with defensive controls, detection, and real-time instructor supervision.",
+  openGraph: {
+    type: "website",
+    siteName: "Blackwire",
+    title: "Blackwire — offensive security, taught defensively",
+    description:
+      "17 modules, 15 air-gapped Debian 12 KVM lab scenarios, and 56 MITRE ATT&CK techniques — streamed directly to your browser.",
+    url: "https://blackwire.deadplug.digital",
+    images: [
+      {
+        url: "/og-blackwire.jpg",
+        width: 1408,
+        height: 768,
+        alt: "Blackwire Cyber Range — Offensive security, taught defensively",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Blackwire — offensive security, taught defensively",
+    description:
+      "17 modules, 15 air-gapped Debian 12 KVM lab scenarios, and real-time instructor supervision — streamed straight to your browser.",
+    images: ["/og-blackwire.jpg"],
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

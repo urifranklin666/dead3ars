@@ -614,3 +614,201 @@ main tbody tr:hover {
   .course-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); }
   .course-art { aspect-ratio: 6 / 5; }
 }
+
+.course-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.course-hero::before {
+  position: absolute;
+  inset: -2rem 0;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  background-image:
+    linear-gradient(#6b9dff15 1px, transparent 1px),
+    linear-gradient(90deg, #6b9dff15 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  mask-image: radial-gradient(ellipse at 75% 50%, black, transparent 70%);
+}
+
+.course-hero h1 span {
+  background: linear-gradient(105deg, #a6bdff, #84edff 70%, #c8afff);
+  background-clip: text;
+  color: transparent;
+}
+
+.course-hero .course-art {
+  border-color: #5277bf;
+  box-shadow: 0 0 0 0.45rem #29468132, 0 0 4rem #427dff45;
+}
+
+.course-art-scan {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(transparent 46%, #76edff38 49%, #a1f4ff9c 50%, transparent 52%);
+  animation: course-scan 2.8s ease-out both;
+}
+
+@keyframes course-scan {
+  from { transform: translateY(-65%); }
+  to { transform: translateY(65%); }
+}
+
+.course-demo-link {
+  border-color: #78c9ef80;
+}
+
+.incident-preview {
+  scroll-margin-top: 8rem;
+  padding: clamp(1rem, 3.5vw, 2.75rem);
+  border: 1px solid #5072a8;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(ellipse at top right, #294e8b70, transparent 62%),
+    #101a2c;
+  box-shadow: 0 18px 70px -32px #548dff5c;
+}
+
+.incident-header h2 {
+  margin-block: 0.4rem 0.6rem;
+  font-size: clamp(2rem, 5vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.06em;
+  font-weight: 700;
+}
+
+.incident-console {
+  display: grid;
+  margin-top: 1.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.85rem;
+  background: #0b1323;
+}
+
+.incident-timeline,
+.incident-detail {
+  min-width: 0;
+  padding: clamp(0.85rem, 3vw, 1.5rem);
+}
+
+.incident-timeline {
+  border-block-end: 1px solid var(--color-line);
+}
+
+.incident-timeline h3,
+.incident-actions legend {
+  margin-bottom: 0.65rem;
+  font-weight: 650;
+}
+
+.incident-event {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  margin-block: 0.4rem;
+  padding: 0.7rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.incident-event:hover,
+.incident-event[aria-pressed="true"],
+.incident-actions button[aria-pressed="true"] {
+  background: #1b3457;
+  border-color: #86b4fc;
+}
+
+.incident-event time {
+  color: var(--color-accent);
+  font: 0.8125rem var(--font-mono);
+}
+
+.incident-reviewed {
+  color: var(--color-accent-2);
+}
+
+.incident-detail h3 {
+  margin-block: 0.35rem;
+  font-size: 1.4rem;
+  font-weight: 650;
+}
+
+.incident-actions {
+  display: grid;
+  min-width: 0;
+  gap: 0.4rem;
+  margin-top: 1.35rem;
+}
+
+.incident-actions button {
+  min-height: 2.75rem;
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: start;
+}
+
+.incident-feedback {
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  border-inline-start: 3px solid var(--color-warn);
+  background: var(--color-panel-2);
+}
+
+.incident-success {
+  border-color: var(--color-accent-2);
+}
+
+@media (min-width: 768px) {
+  .incident-console {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  }
+
+  .incident-timeline {
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--color-line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-art-scan { display: none; }
+}
+
+@media (forced-colors: active) {
+  .course-hero h1 span { color: CanvasText; }
+}
+
+.course-art img {
+  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.course-art::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0.85rem;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(#c1eaff, #c1eaff) top left / 1.25rem 1px,
+    linear-gradient(#c1eaff, #c1eaff) top left / 1px 1.25rem,
+    linear-gradient(#c1eaff, #c1eaff) bottom right / 1.25rem 1px,
+    linear-gradient(#c1eaff, #c1eaff) bottom right / 1px 1.25rem;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+
+.course-track:hover,
+.course-track:focus-visible {
+  background: radial-gradient(ellipse at top, color-mix(in srgb, var(--track-tone) 20%, transparent), transparent 80%), var(--color-panel);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .course-art:hover img { transform: scale(1.06); }
+}

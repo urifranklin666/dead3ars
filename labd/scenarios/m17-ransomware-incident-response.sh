@@ -5,9 +5,9 @@ mkdir -p /srv/fileshare
 mkdir -p /var/log
 mkdir -p /var/backups/immutable
 
-FLAG_CONTAIN="${FLAG_CONTAIN:-FLAG{contain-default}}"
-FLAG_ROOT_CAUSE="${FLAG_ROOT_CAUSE:-FLAG{root_cause-default}}"
-FLAG_RECOVER="${FLAG_RECOVER:-FLAG{recover-default}}"
+[ -n "${FLAG_CONTAIN:-}" ] || FLAG_CONTAIN=\'FLAG{contain-default}\'
+[ -n "${FLAG_ROOT_CAUSE:-}" ] || FLAG_ROOT_CAUSE=\'FLAG{root_cause-default}\'
+[ -n "${FLAG_RECOVER:-}" ] || FLAG_RECOVER=\'FLAG{recover-default}\'
 
 # === Part 1: Ransom note ===
 cat > /srv/fileshare/README-RESTORE-FILES.txt << 'NOTEDOC'
@@ -109,7 +109,7 @@ cd /
 chmod a+r /var/backups/immutable/fileshare-clean.tar.gz /var/backups/immutable/manifest.sha256
 
 cat > /home/student/README-LAB.txt << 'TXT'
-=== DEAD3ARS LAB: m17-ransomware-incident-response ===
+=== BLACKWIRE LAB: m17-ransomware-incident-response ===
 
 You are responding to an active simulated ransomware incident.
 

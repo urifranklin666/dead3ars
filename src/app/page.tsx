@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { IncidentPreview } from '@/components/IncidentPreview';
 import { ModuleList } from '@/components/ModuleList';
 import { curriculumStats, FREE_MODULE_LIMIT, loadModules } from '@/lib/curriculum';
 import { listScenarios } from '@/lib/labs';
@@ -14,17 +15,17 @@ const TIERS = [
 
 const PILLARS = [
   {
-    kicker: '01 · Air-Gapped KVM Range',
+    kicker: 'Air-Gapped KVM Range',
     title: 'Real Linux GUI VMs in your browser',
     body: 'Every student boots a private, zero-egress Debian 12 desktop in seconds with per-student dynamic flags and one-click snapshot rollback.',
   },
   {
-    kicker: '02 · Dual-Lens Rigor',
+    kicker: 'Attack and Defense',
     title: 'Every attack paired with its defense',
     body: 'Each module teaches attacker mechanics alongside detection engineering, root-cause controls, and the legal boundary that governs the work.',
   },
   {
-    kicker: '03 · Live Instructor Console',
+    kicker: 'Live Instructor Console',
     title: 'Shadow, assist, and grade in real time',
     body: 'Supervise an entire cohort from a live screen wall, toggle interactive assist when a student stalls, and sync lab flags straight to the gradebook.',
   },
@@ -53,10 +54,19 @@ export default async function Home() {
             <Link href={user ? workspace : '/register'} className="dz-btn dz-btn-primary">
               {user ? 'Open your workspace' : 'Enroll with invite code'}
             </Link>
-            <Link href="/modules" className="dz-btn">Explore the syllabus</Link>
+            <a href="#incident-preview" className="dz-btn course-demo-link">Try the incident preview</a>
+            {!user && (
+              <a
+                href="mailto:hello@deadplug.digital?subject=Blackwire%20Invite%20%2F%20Instructor%20Pilot%20Request"
+                className="dz-btn"
+              >
+                Request invite
+              </a>
+            )}
           </div>
         </div>
         <div className="course-art">
+          <span className="course-art-scan" aria-hidden="true" />
           <Image src="/course-hero.webp" alt="" fill sizes="(min-width: 1024px) 540px, (min-width: 640px) 90vw, 100vw" preload />
         </div>
       </section>
@@ -75,7 +85,9 @@ export default async function Home() {
         ))}
       </dl>
 
-      <section className="grid gap-4 md:grid-cols-3" aria-label="Platform capabilities">
+      <IncidentPreview />
+
+      <section className="course-section grid gap-4 md:grid-cols-3" aria-label="Platform capabilities">
         {PILLARS.map((p) => (
           <div key={p.title} className="dz-card space-y-2 p-5">
             <p className="dz-label text-accent">{p.kicker}</p>

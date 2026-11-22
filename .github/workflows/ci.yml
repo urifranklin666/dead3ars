@@ -33,6 +33,9 @@ jobs:
       - name: Validate curriculum content
         run: npm run check:curriculum
 
+      - name: Validate KVM lab scenarios
+        run: npm run check:scenarios
+
       - name: Build
         run: npm run build
 

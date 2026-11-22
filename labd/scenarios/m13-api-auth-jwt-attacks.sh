@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[ -n "${FLAG_BOLA:-}" ] || FLAG_BOLA='FLAG{bola-default}'
+[ -n "${FLAG_MASS_ASSIGN:-}" ] || FLAG_MASS_ASSIGN='FLAG{mass_assign-default}'
+[ -n "${FLAG_JWT:-}" ] || FLAG_JWT='FLAG{jwt-default}'
 
 mkdir -p /opt/api-lab
 cat > /opt/api-lab/server.py <<PYEOF
@@ -195,13 +198,13 @@ print("API server starting on 127.0.0.1:8080 ...", flush=True)
 http.server.ThreadingHTTPServer(("127.0.0.1", 8080), Handler).serve_forever()
 PYEOF
 
-sed -i "s/FLAG_PLACEHOLDER_BOLA/${FLAG_BOLA:-FLAG{bola-default}}/g" /opt/api-lab/server.py
-sed -i "s/FLAG_PLACEHOLDER_MASS/${FLAG_MASS_ASSIGN:-FLAG{mass_assign-default}}/g" /opt/api-lab/server.py
-sed -i "s/FLAG_PLACEHOLDER_JWT/${FLAG_JWT:-FLAG{jwt-default}}/g" /opt/api-lab/server.py
+sed -i "s/FLAG_PLACEHOLDER_BOLA/${FLAG_BOLA}/g" /opt/api-lab/server.py
+sed -i "s/FLAG_PLACEHOLDER_MASS/${FLAG_MASS_ASSIGN}/g" /opt/api-lab/server.py
+sed -i "s/FLAG_PLACEHOLDER_JWT/${FLAG_JWT}/g" /opt/api-lab/server.py
 
 cat > /etc/systemd/system/api-lab.service <<UNIT
 [Unit]
-Description=Dead3ars m13 Vulnerable API Server
+Description=Blackwire m13 Vulnerable API Server
 After=network.target
 
 [Service]
@@ -217,7 +220,7 @@ systemctl daemon-reload
 systemctl enable --now api-lab.service
 
 cat > /home/student/README-LAB.txt <<TXT
-=== DEAD3ARS LAB: m13-api-auth-jwt-attacks ===
+=== BLACKWIRE LAB: m13-api-auth-jwt-attacks ===
 Target API: http://127.0.0.1:8080 (open in Firefox or query with curl)
 Source code: /opt/api-lab/server.py
 

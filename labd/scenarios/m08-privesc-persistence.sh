@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-FLAG_USER="${FLAG_USER:-FLAG{user-default}}"
-FLAG_ROOT="${FLAG_ROOT:-FLAG{root-default}}"
-FLAG_HUNT="${FLAG_HUNT:-FLAG{hunt-default}}"
+[ -n "${FLAG_USER:-}" ] || FLAG_USER=\'FLAG{user-default}\'
+[ -n "${FLAG_ROOT:-}" ] || FLAG_ROOT=\'FLAG{root-default}\'
+[ -n "${FLAG_HUNT:-}" ] || FLAG_HUNT=\'FLAG{hunt-default}\'
 
 echo "$FLAG_USER" > /home/student/user.flag
 chown student:student /home/student/user.flag
@@ -30,7 +30,7 @@ CRON
 chmod 644 /etc/cron.d/sys-telemetry-sync
 
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m08-privesc-persistence ===
+=== BLACKWIRE LAB: m08-privesc-persistence ===
 You are logged in as: student
 
 Objectives (3 Flags):

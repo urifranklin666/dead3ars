@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-FLAG_IP="${FLAG_IP:-FLAG{ip-default}}"
-FLAG_PATH="${FLAG_PATH:-FLAG{path-default}}"
-FLAG_EXFIL="${FLAG_EXFIL:-FLAG{exfil-default}}"
+[ -n "${FLAG_IP:-}" ] || FLAG_IP=\'FLAG{ip-default}\'
+[ -n "${FLAG_PATH:-}" ] || FLAG_PATH=\'FLAG{path-default}\'
+[ -n "${FLAG_EXFIL:-}" ] || FLAG_EXFIL=\'FLAG{exfil-default}\'
 
 mkdir -p /var/evidence
 cat > /var/evidence/access.log <<LOG
@@ -36,7 +36,7 @@ JSON
 chmod -R a+rX /var/evidence
 
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m10-log-analysis-forensics ===
+=== BLACKWIRE LAB: m10-log-analysis-forensics ===
 Evidence directory: /var/evidence/
 Files: access.log, auth.log, exfil-manifest.json
 

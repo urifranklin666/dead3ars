@@ -5,6 +5,7 @@ import { RoleControl } from '@/components/RoleControl';
 import { listUsers } from '@/lib/db';
 import { allClasses, instanceStats } from '@/lib/classroom';
 import { listAudit } from '@/lib/audit';
+import { labdHealth } from '@/lib/labs';
 import { classHref } from '@/lib/routes';
 import { isAdmin, viewer } from '@/lib/session';
 import { shortDate } from '@/lib/format';
@@ -22,6 +23,7 @@ export default async function AdminPage() {
   const users = listUsers();
   const classes = allClasses();
   const audit = listAudit({ pageSize: 40 });
+  const range = await labdHealth();
 
   const tiles: [string, string | number][] = [
     ['Students', stats.users.student ?? 0],
@@ -54,6 +56,38 @@ export default async function AdminPage() {
             <p className="dz-label mt-1">{label}</p>
           </div>
         ))}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between">
+          <h2 className="dz-section-title">Cyber Range Preflight</h2>
+          <span className="font-mono text-xs text-muted">/api/labs/health</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="dz-card p-4">
+            <p className={`font-mono text-lg font-bold ${range.ok ? 'text-accent-2' : 'text-danger'}`}>
+              {range.ok ? 'Online' : 'Offline'}
+            </p>
+            <p className="dz-label mt-1">labd daemon</p>
+            {range.error && <p className="mt-1 truncate font-mono text-[11px] text-muted">{range.error}</p>}
+          </div>
+          <div className="dz-card p-4">
+            <p className={`font-mono text-lg font-bold ${range.guiImageReady ? 'text-accent-2' : 'text-warn'}`}>
+              {range.guiImageReady ? 'Ready' : 'Missing'}
+            </p>
+            <p className="dz-label mt-1">KVM GUI image</p>
+          </div>
+          <div className="dz-card p-4">
+            <p className="font-mono text-lg font-bold text-accent">
+              {range.activeLabs} / {range.maxLabs}
+            </p>
+            <p className="dz-label mt-1">Active VMs</p>
+          </div>
+          <div className="dz-card p-4">
+            <p className="font-mono text-lg font-bold text-accent">{range.scenarios}</p>
+            <p className="dz-label mt-1">KVM scenarios</p>
+          </div>
+        </div>
       </section>
 
       <section className="space-y-4">

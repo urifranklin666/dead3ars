@@ -15,6 +15,16 @@ export default function RegisterPage() {
         </p>
       </header>
       <AuthForm mode="register" />
+      <p className="text-center text-xs leading-relaxed text-muted">
+        Need an invite code or running a university or security-team pilot?{' '}
+        <a
+          href="mailto:hello@deadplug.digital?subject=Blackwire%20Invite%20Request"
+          className="dz-link"
+        >
+          Email hello@deadplug.digital
+        </a>
+        .
+      </p>
     </div>
   );
 }

@@ -76,7 +76,7 @@ chmod 644 /var/captures/incident.pcap
 ln -sf /usr/sbin/tcpdump /usr/local/bin/tcpdump
 
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m14-network-packet-analysis ===
+=== BLACKWIRE LAB: m14-network-packet-analysis ===
 PCAP file: /var/captures/incident.pcap
 
 Objectives (3 Flags):

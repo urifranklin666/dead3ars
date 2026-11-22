@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[ -n "${FLAG_PROMPT:-}" ] || FLAG_PROMPT='FLAG{prompt}'
+[ -n "${FLAG_TOOL:-}" ] || FLAG_TOOL='FLAG{tool}'
+[ -n "${FLAG_INDIRECT:-}" ] || FLAG_INDIRECT='FLAG{indirect}'
 mkdir -p /opt/llm-lab
 cat > /opt/llm-lab/app.py <<PY
 import http.server, json, urllib.parse
 
-SYSTEM_SECRET = "${FLAG_PROMPT:-FLAG{prompt}}"
-TOOL_SECRET = "${FLAG_TOOL:-FLAG{tool}}"
-INDIRECT_SECRET = "${FLAG_INDIRECT:-FLAG{indirect}}"
+SYSTEM_SECRET = "${FLAG_PROMPT}"
+TOOL_SECRET = "${FLAG_TOOL}"
+INDIRECT_SECRET = "${FLAG_INDIRECT}"
 
-HTML = """<!doctype html><html><head><title>Dead3ars AI Assistant Lab (m11)</title>
+HTML = """<!doctype html><html><head><title>Blackwire AI Assistant Lab (m11)</title>
 <style>body{font-family:monospace;background:#0e1116;color:#e6edf3;max-width:760px;margin:2rem auto;padding:0 1rem}
 textarea,input{width:100%;background:#161b22;color:#fff;border:1px solid #30363d;padding:8px;margin:6px 0}
 button{background:#ff3b4e;color:#fff;border:0;padding:8px 14px;cursor:pointer;border-radius:6px}
@@ -64,7 +67,7 @@ http.server.ThreadingHTTPServer(("127.0.0.1", 8080), Handler).serve_forever()
 PY
 cat > /etc/systemd/system/llm-lab.service <<'UNIT'
 [Unit]
-Description=Dead3ars m11 Vulnerable AI Assistant
+Description=Blackwire m11 Vulnerable AI Assistant
 After=network.target
 [Service]
 ExecStart=/usr/bin/python3 /opt/llm-lab/app.py
@@ -74,7 +77,7 @@ WantedBy=multi-user.target
 UNIT
 systemctl daemon-reload && systemctl enable --now llm-lab.service
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m11-ai-llm-attack-surface ===
+=== BLACKWIRE LAB: m11-ai-llm-attack-surface ===
 Target URL: http://127.0.0.1:8080 (open in Firefox or curl)
 Objectives (3 Flags):
 1. [prompt]   Perform direct prompt injection on /chat to leak the system prompt secret.

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[ -n "${FLAG_CI_SECRET:-}" ] || FLAG_CI_SECRET='FLAG{ci_secret-default}'
+[ -n "${FLAG_METADATA:-}" ] || FLAG_METADATA='FLAG{metadata-default}'
+[ -n "${FLAG_ESCAPE:-}" ] || FLAG_ESCAPE='FLAG{escape-default}'
 
 # === Part 1: Leaked CI/CD build log ===
 mkdir -p /opt/ci-runner
@@ -45,7 +48,7 @@ cat > /opt/imds-lab/imds-server.py <<PYEOF
 import http.server, json
 
 ROLE_ARN = "arn:aws:iam::123456789012:role/app-role"
-FLAG_METADATA = "${FLAG_METADATA:-FLAG{metadata-default}}"
+FLAG_METADATA = "${FLAG_METADATA}"
 
 security_creds = {
     "Code": "Success",
@@ -88,7 +91,7 @@ PYEOF
 
 cat > /etc/systemd/system/imds-lab.service << 'UNIT'
 [Unit]
-Description=Dead3ars m15 Mock IMDSv1 Service
+Description=Blackwire m15 Mock IMDSv1 Service
 After=network.target
 
 [Service]
@@ -127,7 +130,7 @@ Service: app
 Privileged mode: YES - DANGER
 Docker socket:   /var/run/docker.sock mounted - DANGER
 Host mount:      / mounted read-write - DANGER
-Audit Finding ID: ${FLAG_ESCAPE:-FLAG{escape-default}}
+Audit Finding ID: ${FLAG_ESCAPE}
 
 Risk: A container with --privileged + docker.sock mount
       can launch a new container with host filesystem access.
@@ -143,7 +146,7 @@ TXT
 chmod a+r /opt/deploy/docker-compose.yml /opt/deploy/host-mount-audit.txt
 
 cat > /home/student/README-LAB.txt << 'TXT'
-=== DEAD3ARS LAB: m15-container-cloud-security ===
+=== BLACKWIRE LAB: m15-container-cloud-security ===
 Objectives (3 Flags):
 1. [ci_secret]  Audit /opt/ci-runner/build.log for the unmasked deployment secret.
                   AWS_ACCESS_KEY_ID contains the flag in its last segment.

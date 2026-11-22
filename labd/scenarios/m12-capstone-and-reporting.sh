@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[ -n "${FLAG_WEB:-}" ] || FLAG_WEB='FLAG{web}'
+[ -n "${FLAG_ROOT:-}" ] || FLAG_ROOT='FLAG{root}'
+[ -n "${FLAG_PERSIST:-}" ] || FLAG_PERSIST='FLAG{persist}'
 mkdir -p /opt/capstone
 cat > /opt/capstone/portal.py <<PY
 import http.server, json, urllib.parse
@@ -8,14 +11,14 @@ class H(http.server.BaseHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/config":
             self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers()
-            self.wfile.write(json.dumps({"env":"prod","debug":True,"foothold":"${FLAG_WEB:-FLAG{web}}","ops_script":"/opt/capstone/deploy.sh"}).encode()); return
+            self.wfile.write(json.dumps({"env":"prod","debug":True,"foothold":"${FLAG_WEB}","ops_script":"/opt/capstone/deploy.sh"}).encode()); return
         self.send_response(200); self.send_header("Content-Type","text/html"); self.end_headers()
         self.wfile.write(b"<h1>Capstone Target (127.0.0.1:8080)</h1><!-- debug endpoint: /api/config -->")
 http.server.ThreadingHTTPServer(("127.0.0.1", 8080), H).serve_forever()
 PY
 cat > /etc/systemd/system/capstone-web.service <<'UNIT'
 [Unit]
-Description=Dead3ars m12 Capstone Portal
+Description=Blackwire m12 Capstone Portal
 After=network.target
 [Service]
 ExecStart=/usr/bin/python3 /opt/capstone/portal.py
@@ -32,15 +35,15 @@ SH
 chmod 777 /opt/capstone/deploy.sh
 echo "student ALL=(root) NOPASSWD: /opt/capstone/deploy.sh" > /etc/sudoers.d/capstone
 chmod 440 /etc/sudoers.d/capstone
-echo "${FLAG_ROOT:-FLAG{root}}" > /root/capstone-root.flag
+echo "${FLAG_ROOT}" > /root/capstone-root.flag
 chmod 600 /root/capstone-root.flag
 cat > /etc/cron.d/capstone-persist <<CRON
 # Simulated attacker persistence
-# PERSIST_FLAG=${FLAG_PERSIST:-FLAG{persist}}
+# PERSIST_FLAG=${FLAG_PERSIST}
 */30 * * * * root /bin/true
 CRON
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m12-capstone-and-reporting ===
+=== BLACKWIRE LAB: m12-capstone-and-reporting ===
 Full-chain capstone box (http://127.0.0.1:8080 + local host):
 Objectives (3 Flags):
 1. [web]     Enumerate http://127.0.0.1:8080 to find the debug config endpoint and foothold flag.

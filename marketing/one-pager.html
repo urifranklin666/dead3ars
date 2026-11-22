@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blackwire — Executive & Academic One-Pager</title>
+  <style>
+    :root {
+      --bg: #090e1b;
+      --panel: #10192c;
+      --panel-2: #17233a;
+      --line: #273754;
+      --ink: #f4f6ff;
+      --muted: #a7b5cd;
+      --accent: #a1bfff;
+      --accent-2: #72dfbe;
+      --warn: #f6cb77;
+      --danger: #ff869d;
+      --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --mono: "Geist Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding: 2rem 1.25rem;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    /* Header */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1rem;
+    }
+
+    .wordmark {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 1.125rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .wordmark span { color: var(--accent); }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      border: 1px solid rgba(114, 223, 190, 0.35);
+      background: rgba(114, 223, 190, 0.08);
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+    }
+
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.75rem;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 50%), var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.75rem;
+    }
+
+    .kicker {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 2.15rem;
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.85rem;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .lead {
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .hero-visual {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #060a14;
+      aspect-ratio: 16 / 9;
+    }
+
+    .hero-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.85rem;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* Pillars */
+    .section-title {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.2rem;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin-bottom: 0.45rem;
+      color: var(--ink);
+    }
+
+    .card p {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .card .tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      margin-bottom: 0.35rem;
+    }
+
+    /* Curriculum Grid */
+    .tiers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .tier-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.15rem;
+    }
+
+    .tier-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.55rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .tier-name {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .tier-foundation .tier-name { color: var(--accent-2); }
+    .tier-core .tier-name { color: var(--accent); }
+    .tier-advanced .tier-name { color: var(--danger); }
+
+    .tier-count {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .mod-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .mod-list strong {
+      font-family: var(--mono);
+      color: var(--ink);
+      font-weight: 600;
+      margin-right: 0.35rem;
+    }
+
+    /* Two-column Ops + Boundary */
+    .split {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1rem;
+    }
+
+    .spec-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .spec-list li::before {
+      content: "→ ";
+      color: var(--accent-2);
+      font-family: var(--mono);
+    }
+
+    .boundary {
+      background: rgba(246, 203, 119, 0.06);
+      border: 1px solid rgba(246, 203, 119, 0.35);
+      border-radius: 12px;
+      padding: 1.2rem;
+    }
+
+    .boundary h3 {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--warn);
+      margin-bottom: 0.45rem;
+    }
+
+    .boundary p {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* Footer */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--line);
+      padding-top: 1rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .cta {
+      color: var(--ink);
+      background: var(--panel-2);
+      border: 1px solid var(--accent);
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    @media screen and (max-width: 780px) {
+      .hero, .stats, .pillars, .tiers, .split { grid-template-columns: 1fr; }
+      .spec-list { grid-template-columns: 1fr; }
+    }
+
+    @page {
+      size: letter portrait;
+      margin: 0;
+    }
+
+    @media print {
+      html, body {
+        width: 8.5in;
+        height: 11in;
+        margin: 0;
+        padding: 0.34in 0.42in;
+        background: #090e1b !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        overflow: hidden;
+      }
+      .page { gap: 0.52rem; max-width: 100%; }
+      .topbar { padding-bottom: 0.4rem; }
+      .hero { padding: 0.85rem 1rem; gap: 0.95rem; }
+      h1 { font-size: 1.52rem; margin-bottom: 0.35rem; }
+      .lead { font-size: 0.75rem; line-height: 1.36; }
+      .stats { gap: 0.55rem; }
+      .stat { padding: 0.5rem 0.7rem; }
+      .stat-value { font-size: 1.25rem; }
+      .stat-label { font-size: 0.67rem; margin-top: 0.12rem; }
+      .section-title { margin-bottom: 0.32rem; font-size: 0.68rem; }
+      .pillars, .tiers, .split { gap: 0.6rem; }
+      .card, .tier-card, .boundary { padding: 0.62rem 0.76rem; break-inside: avoid; }
+      .card .tag { font-size: 0.63rem; margin-bottom: 0.2rem; }
+      .card h3 { font-size: 0.82rem; margin-bottom: 0.2rem; }
+      .card p, .boundary p { font-size: 0.71rem; line-height: 1.32; }
+      .tier-header { padding-bottom: 0.35rem; margin-bottom: 0.42rem; }
+      .tier-name { font-size: 0.74rem; }
+      .tier-count { font-size: 0.66rem; }
+      .mod-list { gap: 0.16rem; font-size: 0.69rem; line-height: 1.28; }
+      .spec-list { gap: 0.2rem 0.6rem; font-size: 0.7rem; margin-top: 0.3rem; }
+      .boundary h3 { font-size: 0.7rem; margin-bottom: 0.25rem; }
+      footer { padding-top: 0.42rem; font-size: 0.68rem; }
+      .cta { padding: 0.32rem 0.7rem; font-size: 0.68rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="wordmark">BLACK<span>WIRE</span></div>
+      <div class="badge">Air-Gapped KVM Cyber Range · Invite-Only Academy</div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="kicker">Offensive Security, Taught Defensively</p>
+        <h1>Learn how attacks work. <span>Build better defenses.</span></h1>
+        <p class="lead">
+          Blackwire is a browser-streamed cyber range and 17-module security curriculum built for
+          universities, bootcamps, and enterprise security teams. Every offensive technique is
+          practised inside a private, zero-egress Debian 12 KVM virtual machine and paired with
+          detection engineering, root-cause controls, and the legal boundary that governs the work.
+        </p>
+      </div>
+      <div class="hero-visual">
+        <img src="assets/blackwire-banner-16x9.jpg" alt="Blackwire Air-Gapped KVM Cyber Range" />
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Platform metrics">
+      <div class="stat">
+        <div class="stat-value">17</div>
+        <div class="stat-label">Structured modules (~30 hrs)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">15</div>
+        <div class="stat-label">Live KVM lab scenarios</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">83</div>
+        <div class="stat-label">Server-side assessment checks</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">56</div>
+        <div class="stat-label">MITRE ATT&amp;CK techniques</div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-title">Platform Capabilities</p>
+      <div class="pillars">
+        <article class="card">
+          <p class="tag">01 · KVM Range</p>
+          <h3>Real Linux GUI VMs in your browser</h3>
+          <p>
+            Zero local VirtualBox setup. Every learner boots a private, zero-egress Debian 12
+            desktop in seconds with per-student dynamic flags and one-click snapshot rollback.
+          </p>
+        </article>
+        <article class="card">
+          <p class="tag">02 · Dual-Lens Curriculum</p>
+          <h3>Every attack paired with its defense</h3>
+          <p>
+            Build-validated curriculum requires Attacker View, Defender View, detection logic,
+            and legal boundaries on every module—covering Web, APIs, Cloud, AI/LLM, and IR.
+          </p>
+        </article>
+        <article class="card">
+          <p class="tag">03 · Instructor Console</p>
+          <h3>Shadow, assist, and grade in real time</h3>
+          <p>
+            Monitor an entire cohort from a live screen wall, toggle interactive assist when a
+            student stalls, grade rubrics server-side, and export gradebooks to CSV.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-title">17-Module Syllabus Overview</p>
+      <div class="tiers">
+        <div class="tier-card tier-foundation">
+          <div class="tier-header">
+            <span class="tier-name">Foundation</span>
+            <span class="tier-count">3 Modules</span>
+          </div>
+          <ul class="mod-list">
+            <li><strong>M01</strong> Ethics, Law &amp; Authorization</li>
+            <li><strong>M02</strong> Safe Lab &amp; Artifact Hygiene</li>
+            <li><strong>M03</strong> The Modern Threat Landscape</li>
+          </ul>
+        </div>
+        <div class="tier-card tier-core">
+          <div class="tier-header">
+            <span class="tier-name">Core</span>
+            <span class="tier-count">6 Modules</span>
+          </div>
+          <ul class="mod-list">
+            <li><strong>M04</strong> Reconnaissance &amp; OSINT</li>
+            <li><strong>M05</strong> Hardware Attacks &amp; HID Injection</li>
+            <li><strong>M06</strong> Initial Access: Phishing &amp; Edge</li>
+            <li><strong>M07</strong> Web Application Attacks (OWASP)</li>
+            <li><strong>M13</strong> Modern API, OAuth &amp; JWT Security</li>
+            <li><strong>M14</strong> Network Traffic &amp; Packet Forensics</li>
+          </ul>
+        </div>
+        <div class="tier-card tier-advanced">
+          <div class="tier-header">
+            <span class="tier-name">Advanced</span>
+            <span class="tier-count">8 Modules</span>
+          </div>
+          <ul class="mod-list">
+            <li><strong>M08</strong> Privesc, Persistence &amp; Lateral Move</li>
+            <li><strong>M09</strong> Detection Engineering &amp; Blue Team</li>
+            <li><strong>M10</strong> Log Analysis &amp; Host Forensics</li>
+            <li><strong>M11</strong> AI &amp; LLM Attack Surface</li>
+            <li><strong>M15</strong> Containers, CI/CD &amp; Cloud Identity</li>
+            <li><strong>M16</strong> Static &amp; Dynamic Binary Triage</li>
+            <li><strong>M17</strong> Ransomware Incident Response</li>
+            <li><strong>M12</strong> Capstone Engagement &amp; Report</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="split">
+      <div class="card">
+        <p class="tag">Deployment &amp; Classroom Ops</p>
+        <h3>Self-hostable, auditable, zero-fluff architecture</h3>
+        <ul class="spec-list">
+          <li>Standalone Docker deployment</li>
+          <li>Server-side assessment grading</li>
+          <li>Bulk CSV roster import</li>
+          <li>Class join codes &amp; announcements</li>
+          <li>Per-module cohort stall analytics</li>
+          <li>WCAG 2.1 AA accessibility audited</li>
+        </ul>
+      </div>
+      <aside class="boundary">
+        <h3>Scope &amp; Authorization Boundary</h3>
+        <p>
+          Every Blackwire lab runs exclusively inside an air-gapped, ephemeral KVM sandbox.
+          No module targets a third party. Coursework explicitly teaches compliance with the
+          CFAA (18 U.S.C. § 1030), UK Computer Misuse Act 1990, and EU Directive 2013/40/EU.
+        </p>
+      </aside>
+    </section>
+
+    <footer>
+      <span>BLACKWIRE · hello@deadplug.digital · learn.deadplug.digital</span>
+      <span class="cta">Request Access → https://blackwire.deadplug.digital</span>
+    </footer>
+  </main>
+</body>
+</html>

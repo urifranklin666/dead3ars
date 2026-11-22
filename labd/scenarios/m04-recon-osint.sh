@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+[ -n "${FLAG_ROBOTS:-}" ] || FLAG_ROBOTS='FLAG{robots}'
+[ -n "${FLAG_META:-}" ] || FLAG_META='FLAG{meta}'
+[ -n "${FLAG_DNS:-}" ] || FLAG_DNS='FLAG{dns}'
 mkdir -p /opt/osint-target/.well-known /opt/osint-target/backup
 cat > /opt/osint-target/index.html <<'HTML'
 <!doctype html><html><body style="font-family:monospace;background:#0e1116;color:#e6edf3;padding:2rem">
@@ -11,22 +14,22 @@ HTML
 cat > /opt/osint-target/robots.txt <<TXT
 User-agent: *
 Disallow: /backup/
-# recon-flag: ${FLAG_ROBOTS:-FLAG{robots}}
+# recon-flag: ${FLAG_ROBOTS}
 TXT
 cat > /opt/osint-target/.well-known/security.txt <<TXT
 Contact: mailto:sec@northstar.invalid
 Policy: https://northstar.invalid/disclosure
-# meta-flag: ${FLAG_META:-FLAG{meta}}
+# meta-flag: ${FLAG_META}
 TXT
 cat > /opt/osint-target/backup/dns-zone.txt <<TXT
 \$ORIGIN northstar.invalid.
 @       IN A     198.51.100.10
 vpn     IN A     198.51.100.11
-_audit  IN TXT   "${FLAG_DNS:-FLAG{dns}}"
+_audit  IN TXT   "${FLAG_DNS}"
 TXT
 cat > /etc/systemd/system/osint-target.service <<'UNIT'
 [Unit]
-Description=Dead3ars m04 Simulated OSINT Target
+Description=Blackwire m04 Simulated OSINT Target
 After=network.target
 [Service]
 Type=simple
@@ -38,7 +41,7 @@ WantedBy=multi-user.target
 UNIT
 systemctl daemon-reload && systemctl enable --now osint-target.service
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m04-recon-osint ===
+=== BLACKWIRE LAB: m04-recon-osint ===
 Target: http://127.0.0.1:8080 (use curl or Firefox)
 Objectives (3 Flags):
 1. [robots] Enumerate /robots.txt for disallowed paths and hidden comment flag.

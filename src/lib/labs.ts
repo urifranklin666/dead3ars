@@ -605,6 +605,45 @@ export async function teacherLabsSnapshot() {
   };
 }
 
+export interface LabdHealth {
+  ok: boolean;
+  activeLabs: number;
+  maxLabs: number;
+  guiImageReady: boolean;
+  scenarios: number;
+  error?: string;
+}
+
+export async function labdHealth(): Promise<LabdHealth> {
+  const scenarios = listScenarios().length;
+  try {
+    const res = await fetch(`${labdUrl()}/health`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!res.ok) {
+      return { ok: false, activeLabs: 0, maxLabs: 0, guiImageReady: false, scenarios, error: `HTTP ${res.status}` };
+    }
+    const data = (await res.json()) as { ok?: boolean; activeLabs?: number; maxLabs?: number; guiImageReady?: boolean };
+    return {
+      ok: Boolean(data.ok),
+      activeLabs: Number(data.activeLabs ?? 0),
+      maxLabs: Number(data.maxLabs ?? 0),
+      guiImageReady: Boolean(data.guiImageReady),
+      scenarios,
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      activeLabs: 0,
+      maxLabs: 0,
+      guiImageReady: false,
+      scenarios,
+      error: e instanceof Error ? e.message : 'unreachable',
+    };
+  }
+}
+
 export async function killAllLabs(actorId: number): Promise<number> {
   const res = await labdFetch<{ stopped: number }>('/labs', { method: 'DELETE' });
   db()

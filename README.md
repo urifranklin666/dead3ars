@@ -8,10 +8,10 @@ The name is a joke at the reader's expense. The content is not.
 
 ## What this is
 
-- **Twelve modules**, sourced from the current threat landscape rather than from any single
-  piece of hardware: identity attacks, ransomware economics, supply-chain compromise,
-  edge-device exploitation, the AI/LLM attack surface, and the detection and forensic work
-  that follows.
+- **Seventeen modules** (~30 hours) and **fifteen live KVM scenarios**, sourced from the
+  current threat landscape rather than from any single piece of hardware: identity and
+  API/JWT attacks, packet forensics, ransomware incident response, container/cloud escapes,
+  binary triage, the AI/LLM attack surface, and the detection and forensic work that follows.
 - **A lab per module.** Each one is constrained to an environment the student owns — an
   isolated VM, a host they control, an artefact they generated, or public data only. No
   module targets a third party.
@@ -77,6 +77,8 @@ npm run start             # production server
 npm run lint              # eslint
 npm run typecheck         # tsc --noEmit
 npm run check:curriculum  # validate every module's frontmatter and shape
+npm run check:scenarios   # sandbox-test all 15 KVM scenario provisioning scripts
+npm run sync:scenarios    # sync labd/scenarios/*.sh to /opt/dead3ars-labd/scenarios/
 npm run seed              # demo users + progress
 npm run init:db           # create the schema and ensure an admin account
 npm run test:smoke        # end-to-end HTTP test (needs the server running)

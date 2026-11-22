@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-FLAG_SQLI="${FLAG_SQLI:-FLAG{sqli-default}}"
-FLAG_IDOR="${FLAG_IDOR:-FLAG{idor-default}}"
-FLAG_AUTH="${FLAG_AUTH:-FLAG{auth-default}}"
+[ -n "${FLAG_SQLI:-}" ] || FLAG_SQLI=\'FLAG{sqli-default}\'
+[ -n "${FLAG_IDOR:-}" ] || FLAG_IDOR=\'FLAG{idor-default}\'
+[ -n "${FLAG_AUTH:-}" ] || FLAG_AUTH=\'FLAG{auth-default}\'
 
 mkdir -p /opt/vulnapp
 cat > /opt/vulnapp/server.py <<PY
@@ -34,7 +34,7 @@ HTML = """<!doctype html><html><head><title>Dead3ars Target App (m07)</title>
 <style>body{font-family:monospace;background:#0e1116;color:#e6edf3;max-width:760px;margin:2rem auto;padding:0 1rem}
 a,button{color:#ff5566;cursor:pointer} input{background:#161b22;color:#fff;border:1px solid #30363d;padding:6px;margin-right:6px}
 .card{border:1px solid #30363d;padding:1rem;margin:1rem 0;border-radius:8px;background:#161b22}</style></head>
-<body><h1>Dead3ars Vulnerable Portal (m07)</h1>
+<body><h1>Blackwire Vulnerable Portal (m07)</h1>
 <p>Target running locally at <code>http://127.0.0.1:8080</code> &middot; Source: <code>/opt/vulnapp/server.py</code></p>
 <div class="card"><h3>1. User Directory Search</h3>
   <form action="/search"><input name="q" placeholder="alice"><button>Search</button></form></div>
@@ -125,7 +125,7 @@ PY
 
 cat > /etc/systemd/system/vulnapp.service <<'UNIT'
 [Unit]
-Description=Dead3ars m07 Vulnerable Web App
+Description=Blackwire m07 Vulnerable Web App
 After=network.target
 
 [Service]
@@ -141,7 +141,7 @@ systemctl daemon-reload
 systemctl enable --now vulnapp.service
 
 cat > /home/student/README-LAB.txt <<'TXT'
-=== DEAD3ARS LAB: m07-web-app-attacks ===
+=== BLACKWIRE LAB: m07-web-app-attacks ===
 Target URL: http://127.0.0.1:8080 (open in Firefox or query with curl)
 Source code: /opt/vulnapp/server.py
 
