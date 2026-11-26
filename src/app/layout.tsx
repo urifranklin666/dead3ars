@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
@@ -52,7 +53,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* CH 404 network bar — shared design bundle from the hub; Blackwire keeps its own skin */}
+        <link rel="stylesheet" href="https://deadplug.digital/signal/v1/signal.css?v=1.0.0" />
+      </head>
       <body className="flex min-h-full flex-col">
+        <Script src="https://deadplug.digital/signal/v1/signal.js?v=1.0.0" strategy="afterInteractive" data-sg-channel="blackwire" />
         <a href="#main" className="dz-skip">
           Skip to content
         </a>
